@@ -1,0 +1,7 @@
+
+# First task modeldump for SI
+--runmode "first_task_basemodel_dump" --gridsearch_name "reproduce" --method_name "SI" --ds_name "tiny" --lr_grid "1e-2,5e-3,1e-3,5e-4,1e-4" --boot_lr_grid "1e-1,5e-2,1e-2,5e-3,1e-3,5e-4,1e-4" "small_VGG9_cl_128_128"
+
+# Run any method using this first task model (enable testing by --test argument)
+
+--gridsearch_name "reproduce" --method_name "SI" --ds_name "tiny" --lr_grid "1e-2,5e-3,1e-3,5e-4,1e-4" --boot_lr_grid "1e-1,5e-2,1e-2,5e-3,1e-3,5e-4,1e-4" --test "small_VGG9_cl_128_128"
