@@ -33,8 +33,8 @@ def replace_heads(previous_model_path, current_model_path):
 
 def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_path, init_model_path, exp_dir, data_dir,
                                            reg_sets, reg_lambda=1, norm='L2', num_epochs=100, lr=0.0008, batch_size=200,
-                                           weight_decay=0, b1=True, L1_decay=False, head_shared=False,
-                                           saving_freq=5):
+                                           weight_decay=0, b1=True, L1_decay=False, head_shared=True,
+                                           saving_freq=5, optimizer=1, reload_optimizer=True):
     """
     In case of accumelating omega for the different tasks in the sequence, baisically to mimic the setup of other method where 
     the reguilizer is computed on the training set. Note that this doesn't consider our adaptation
@@ -50,6 +50,12 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
     use_gpu = torch.cuda.is_available()
 
     start_preprocess_time = time.time()
+
+    previous_model_path = ''
+    if 'best_model.pth.tar' in previous_task_model_path:
+        # same as best model, but the optimizer is also saved there
+        previous_model_path = previous_task_model_path.replace('best_model.pth.tar', 'epoch.pth.tar')
+
     model_ft = torch.load(previous_task_model_path)
     if isinstance(model_ft, dict):
         model_ft = model_ft['model']
@@ -60,7 +66,7 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
         update_batch_size = batch_size
     # update the omega for the previous task, accumelate it over previous omegas
     model_ft = accumulate_objective_based_weights(data_dir, reg_sets, model_ft, update_batch_size, norm,
-                                                  test_set="train")
+                                                  test_set="train", optimizer=optimizer)
     # set the lambda for the MAS regularizer
     model_ft.reg_params['lambda'] = reg_lambda
     preprocessing_time = time.time() - start_preprocess_time
@@ -87,8 +93,15 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
         model_ft = model_ft.cuda()
 
     # call the MAS optimizer
-    optimizer_ft = train_MAS.Weight_Regularized_SGD(model_ft.parameters(), lr, momentum=0.9,
+    if optimizer == 0:
+        optimizer_ft = train_MAS.Weight_Regularized_SGD(model_ft.parameters(), lr, momentum=0.9,
                                                     weight_decay=weight_decay, L1_decay=L1_decay)
+    elif optimizer == 1:
+        optimizer_ft = train_MAS.Weight_Regularized_Adam(model_ft.parameters(), lr, betas=(0.9, 0.999),
+                                                        weight_decay=weight_decay, L1_decay=L1_decay)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
 
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
@@ -101,23 +114,25 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
     # this training functin passes the reg params to the optimizer to be used for penalizing changes on important params
     model_ft, acc = train_MAS.train_model(model_ft, criterion, optimizer_ft, lr, dset_loaders,
                                           dset_sizes, use_gpu, num_epochs, exp_dir, resume,
-                                          saving_freq=saving_freq)
+                                          previous_model_path=previous_model_path,
+                                          saving_freq=saving_freq, reload_optimizer=reload_optimizer)
 
     return model_ft, acc
 
 
-def accumulate_objective_based_weights(data_dir, reg_sets, model_ft, batch_size, norm='L2', test_set="train"):
-    data_transform = transforms.Compose([
-        transforms.Scale(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+def accumulate_objective_based_weights(data_dir, reg_sets, model_ft, batch_size, norm='L2', test_set="train", optimizer=1):
+
 
     dset_loaders = []
     for data_path in reg_sets:
 
         # if so then the reg_sets is a dataset by its own, this is the case for the mnist dataset
         if data_dir is not None:
+            data_transform = transforms.Compose([
+                transforms.Scale(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
             dset = ImageFolderTrainVal(data_dir, data_path, data_transform)
         else:
             dset = torch.load(data_path)
@@ -137,7 +152,13 @@ def accumulate_objective_based_weights(data_dir, reg_sets, model_ft, batch_size,
     reg_params = train_MAS.initialize_store_reg_params(model_ft)
     model_ft.reg_params = reg_params
 
-    optimizer_ft = train_MAS.Objective_After_SGD(model_ft.parameters(), lr=0.0001, momentum=0.9)
+    if optimizer == 0:
+        optimizer_ft = train_MAS.Objective_After_SGD(model_ft.parameters(), lr=0.0001, momentum=0.9)
+    elif optimizer == 1:
+        optimizer_ft = train_MAS.Objective_After_Adam(model_ft.parameters(), lr=0.0001)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
 
     if norm == 'L2':
         print('********************objective with L2 norm***************')

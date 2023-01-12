@@ -70,7 +70,7 @@ cmd65 = 'py ./framework/main.py deep_VGG22_cl_512_512  --gridsearch_name Adam_20
 # cmd1, cmd20, cmd21, cmd30, cmd31,
 # cmds = [cmd60, cmd61, cmd2, cmd22, cmd23, cmd32, cmd33, cmd62, cmd63, cmd3, cmd24, cmd25, cmd34, cmd35, cmd64, cmd65]
 # cmds = [cmd162, cmd163, cmd164, cmd165, cmd166, cmd167, cmd168, cmd169]
-cmds = [cmd162]
+cmds = [cmd167]
 for cmd in cmds:
     os.system(cmd)
 

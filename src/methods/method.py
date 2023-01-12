@@ -789,7 +789,9 @@ class MAS(Method):
             weight_decay=args.weight_decay,
             num_epochs=args.num_epochs,
             lr=args.lr, norm='L2', b1=False,
+            head_shared=args.init_freeze,
             saving_freq=args.saving_freq,
+            reload_optimizer=args.reload_optimizer
         )
 
     def get_output(self, images, args):
