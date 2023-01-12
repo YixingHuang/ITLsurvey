@@ -4,6 +4,9 @@ src/data/datasets/
 src/results/
 src/.idea/
 src/data/__pycache__/
+src/methods/__pycache__/
 src/methods/Finetune/__pycache__/
 src/methods/MAS/__pycache__/
 src/methods/SI/__pycache__/
+src\methods\__pycache__\
+
