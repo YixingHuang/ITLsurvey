@@ -1084,19 +1084,8 @@ class Finetune(Method):
                                      save_models_mode=True,
                                      replace_last_classifier_layer=True,
                                      freq=args.saving_freq,
+                                     optimizer=args.optimizer
                                      )
-
-    # def train(self, args, manager, hyperparams):
-    #     #same as SI, but set the regularization parameter lambda to 0
-    #     return trainSI.fine_tune_elastic(dataset_path=manager.current_task_dataset_path,
-    #                                      num_epochs=args.num_epochs,
-    #                                      exp_dir=manager.heuristic_exp_dir,
-    #                                      model_path=manager.previous_task_model_path,
-    #                                      reg_lambda=0,
-    #                                      batch_size=args.batch_size, lr=args.lr, init_freeze=args.init_freeze,
-    #                                      weight_decay=args.weight_decay,
-    #                                      saving_freq=args.saving_freq)
-
 
     @staticmethod
     def grid_poststep(args, manager):

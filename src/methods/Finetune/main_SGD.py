@@ -11,8 +11,8 @@ import methods.Finetune.train_SGD as SGD_Training
 
 
 def fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes, model_path, exp_dir, num_epochs=100, lr=0.0004,
-                  freeze_mode=0, weight_decay=0, enable_resume=True, replace_last_classifier_layer=True,
-                  save_models_mode=True, freq=5):
+                  freeze_mode=0, weight_decay=0, enable_resume=True, replace_last_classifier_layer=False,
+                  save_models_mode=True, freq=5, optimizer=1):
     """
     Finetune training pipeline with SGD optimizer.
     (1) Performs training setup: dataloading, init.
@@ -71,8 +71,16 @@ def fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes, model_path, 
         # In freeze mode, only the last classification layer is optimized (rest of net is frozen)
         optimizer_ft = optim.SGD(model_ft.classifier._modules['6'].parameters(), lr, momentum=0.9)
     else:
-        optimizer_ft = optim.SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
-
+        if optimizer == 0:
+            optimizer_ft = optim.SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
+        elif optimizer == 1:
+            optimizer_ft = optim.Adam(model_ft.parameters(), lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=weight_decay)
+        elif optimizer == 2:
+            optimizer_ft = optim.RMSprop(model_ft.parameters(), lr, alpha=0.99, eps=1e-8, weight_decay=weight_decay)
+        else:
+            raise NotImplementedError('Optimizer not implemented. '
+                                      'Please set to 0 for SGD or 1 for Adam or 2 for RMSprop! Currrent optimizer is ',
+                                      optimizer)
     # Start training
     model_ft, best_acc = SGD_Training.train_model(model_ft, criterion, optimizer_ft, lr, dset_dataloader,
                                                   cumsum_dset_sizes, use_gpu, num_epochs, exp_dir, resume,
