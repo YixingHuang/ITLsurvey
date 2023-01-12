@@ -1,0 +1,7 @@
+
+*.txt
+src/data/datasets/
+src/results/
+src/.idea/
+src/data/__pycache__/
+
