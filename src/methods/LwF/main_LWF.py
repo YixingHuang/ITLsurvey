@@ -143,13 +143,13 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
 
     print(str(start_epoch))
 
-    for epoch in range(start_epoch, num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    for epoch in range(start_epoch, num_epochs + 2):
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)
@@ -168,18 +168,18 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 # get the inputs
                 inputs, labels = data
                 # ==========
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     original_inputs = inputs.clone()
 
                 # wrap them in Variable
                 if use_gpu:
-                    if phase == 'train':
+                    if phase == 'train' and epoch > 0:
                         original_inputs = original_inputs.cuda()
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs.cuda()), \
                                      Variable(labels.cuda())
                 else:
-                    if phase == 'train':
+                    if phase == 'train' and epoch > 0:
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs), Variable(labels)
 
@@ -202,7 +202,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 # Compute distillation loss.
                 dist_loss = 0
                 # Apply distillation loss to all old tasks.
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     for idx in range(len(target_logits)):
                         dist_loss += distillation_loss(tasks_outputs[idx], target_logits[idx], temperature, scale[idx])
                     # backward + optimize only if in training phase
@@ -210,7 +210,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 total_loss = reg_lambda * dist_loss + task_loss
                 preprocessing_time += time.time() - start_preprocess_time
 
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     total_loss.backward()
                     optimizer.step()
 

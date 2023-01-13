@@ -1249,7 +1249,10 @@ class FinetuneRehearsalFullMem(Method):
     def inference_eval(args, manager):
         """ Inference for testing."""
         model = torch.load(args.eval_model_path)
-        target_head_idx = args.eval_dset_idx
+        if args.init_freeze:
+            target_head_idx = 0
+        else:
+            target_head_idx = args.eval_dset_idx
         target_heads = None
 
         print("EVAL on prev head idx: ", target_head_idx)
