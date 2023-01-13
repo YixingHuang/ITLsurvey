@@ -88,7 +88,7 @@ def test_model(method, model, dataset_path, target_task_head_idx, target_head=No
 
 
 def test_task_joint_model(model_path, dataset_path, task_idx, task_lengths, batch_size=200, subset='test',
-                          print_per_class_acc=True, debug=False, tasks_idxes=None):
+                          print_per_class_acc=True, debug=False, tasks_idxes=None, init_freeze=True):
     """
     Test the performance of a given task in a model that is trained jointly on a set of tasks.
     Shared output layer, but masks out other task outputs.
@@ -121,11 +121,14 @@ def test_task_joint_model(model_path, dataset_path, task_idx, task_lengths, batc
     dset_classes = dsets['train'].classes
     class_correct = list(0. for i in range(len(dset_classes)))
     class_total = list(0. for i in range(len(dset_classes)))
-    if tasks_idxes is None:
-        this_task_class_mask = torch.tensor(list(range(task_lengths[task_idx]))) + sum(task_lengths[0:task_idx])
+    if init_freeze:
+        this_task_class_mask = tasks_idxes
     else:
-        this_task_class_mask = tasks_idxes[task_idx]
-        assert isinstance(this_task_class_mask, list)
+        if tasks_idxes is None:
+            this_task_class_mask = torch.tensor(list(range(task_lengths[task_idx]))) + sum(task_lengths[0:task_idx])
+        else:
+            this_task_class_mask = tasks_idxes[task_idx]
+            assert isinstance(this_task_class_mask, list)
 
     if debug:
         print("TESTING PARAMS:")
@@ -161,5 +164,5 @@ def test_task_joint_model(model_path, dataset_path, task_idx, task_lengths, batc
         pdb.set_trace()
     accuracy = np.sum(class_correct) * 100 / np.sum(class_total)
     accuracy = accuracy.item()
-    print('Accuracy: ' + str(accuracy))
+    print('Accuracy: ' + str(accuracy) + "  " + str(np.sum(class_correct)) + "  " + str(np.sum(class_total)))
     return accuracy

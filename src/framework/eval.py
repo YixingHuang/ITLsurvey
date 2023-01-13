@@ -59,7 +59,7 @@ def main(args, manager, ds_paths, model_paths):
 
     if manager.method.name == methods.Joint.name:
         args.model_path = model_paths[0]
-        eval_single_model_all_tasks(args, manager, ds_paths, )
+        eval_single_model_all_tasks(args, manager, ds_paths)
     else:
         eval_all_models_all_tasks(args, manager, ds_paths, model_paths)
 

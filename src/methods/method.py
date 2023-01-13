@@ -1290,8 +1290,8 @@ class Joint(Method):
         Finetune.grid_poststep(args, manager)
 
     @staticmethod
-    def compose_dataset(dataset_path, batch_size):
-        return Finetune.compose_dataset(dataset_path, batch_size)
+    def compose_dataset(dataset_path, batch_size, init_freeze=True):
+        return Finetune.compose_dataset(dataset_path, batch_size, init_freeze)
 
     @staticmethod
     def train_args_overwrite(args):

@@ -1,5 +1,6 @@
 
 *.txt
+*__pycache__
 src/data/datasets/
 src/results/
 src/.idea/
