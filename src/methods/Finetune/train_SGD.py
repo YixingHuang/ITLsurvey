@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import utilities.utils as utils
 
 
-def set_lr(optimizer, lr, count, decay_threshold=5, early_stop_threshold=10):
+def set_lr(optimizer, lr, count, decay_threshold=10, early_stop_threshold=20):
     """
     Early stop or decay learning rate by a factor of 0.1 based on count.
     :param lr:              Current learning rate
@@ -22,7 +22,7 @@ def set_lr(optimizer, lr, count, decay_threshold=5, early_stop_threshold=10):
 
     # Decay
     if count == decay_threshold:
-        lr = lr * 0.1
+        lr = lr * 0.5
         print('lr is set to {}'.format(lr))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
