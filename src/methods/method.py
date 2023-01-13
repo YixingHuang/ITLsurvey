@@ -1021,26 +1021,29 @@ class LWF(Method):
 
     def train(self, args, manager, hyperparams):
         # LWF PRE-STEP: WARM-UP (Train only classifier)
-        if manager.method.warmup_step:
+        if manager.method.warmup_step and not args.init_freeze:
             print("LWF WARMUP STEP")
             warmup_exp_dir = os.path.join(manager.parent_exp_dir, 'task_' + str(args.task_counter), 'HEAD_TRAINING')
             trainLWF.fine_tune_freeze(dataset_path=manager.current_task_dataset_path,
                                       model_path=args.previous_task_model_path,
                                       exp_dir=warmup_exp_dir, batch_size=args.batch_size,
                                       num_epochs=int(args.num_epochs / 2),
-                                      lr=args.lr)
+                                      lr=args.lr,
+                                      optimizer=args.optimizer)
             args.init_model_path = warmup_exp_dir
             print("LWF WARMUP STEP DONE")
-        return trainLWF.fine_tune_SGD_LwF(dataset_path=manager.current_task_dataset_path,
-                                          previous_task_model_path=manager.previous_task_model_path,
-                                          init_model_path=args.init_model_path,
-                                          exp_dir=manager.heuristic_exp_dir,
-                                          batch_size=args.batch_size,
-                                          num_epochs=args.num_epochs, lr=args.lr, init_freeze=args.init_freeze,
-                                          weight_decay=args.weight_decay,
-                                          last_layer_name=args.classifier_heads_starting_idx,
-                                          saving_freq=args.saving_freq,
-                                          reg_lambda=hyperparams['lambda'])
+        return trainLWF.fine_tune_LwF_main(dataset_path=manager.current_task_dataset_path,
+                                           previous_task_model_path=manager.previous_task_model_path,
+                                           init_model_path=args.init_model_path,
+                                           exp_dir=manager.heuristic_exp_dir,
+                                           batch_size=args.batch_size,
+                                           num_epochs=args.num_epochs, lr=args.lr, init_freeze=args.init_freeze,
+                                           weight_decay=args.weight_decay,
+                                           last_layer_name=args.classifier_heads_starting_idx,
+                                           saving_freq=args.saving_freq,
+                                           reg_lambda=hyperparams['lambda'],
+                                           optimizer=args.optimizer,
+                                           reload_optimizer=args.reload_optimizer)
 
     def get_output(self, images, args):
         outputs = args.model(Variable(images))

@@ -362,6 +362,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 if epoch_acc > best_acc:
                     del outputs, labels, inputs, loss, preds
                     best_acc = epoch_acc
+                    print("new best val accuracy")
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
 
                     epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'

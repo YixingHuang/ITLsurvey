@@ -78,11 +78,11 @@ def distillation_loss(y, teacher_scores, T, scale):
 def set_lr(optimizer, lr, count):
     """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
     continue_training = True
-    if count > 10:
+    if count > 20:
         continue_training = False
         print("training terminated")
-    if count == 5:
-        lr = lr * 0.1
+    if count == 10:
+        lr = lr * 0.5
         print('lr is set to {}'.format(lr))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -98,7 +98,8 @@ def traminate_protocol(since, best_acc):
 
 
 def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_gpu, num_epochs,
-                    exp_dir='./', resume='', temperature=2, saving_freq=5, reg_lambda=1):
+                    exp_dir='./', resume='', temperature=2, previous_model_path='',saving_freq=5, reg_lambda=1,
+                    reload_optimizer=True):
     print('dictoinary length' + str(len(dset_loaders)))
     # set orginal model to eval mode
     original_model.eval()
@@ -124,6 +125,18 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
 
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(resume, checkpoint['epoch']))
+    elif os.path.isfile(previous_model_path) and reload_optimizer:
+        start_epoch = 0
+        print("=> no checkpoint found at '{}'".format(resume))
+        print("load checkpoint from previous task/center model at '{}'".format(previous_model_path))
+        checkpoint = torch.load(previous_model_path)
+        # model.load_state_dict(checkpoint['state_dict']) # has already been loaded
+        lr = checkpoint['lr']
+        print("lr is ", lr)
+        print('load optimizer')
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint '{}' (epoch {})"
+              .format(previous_model_path, checkpoint['epoch']))
     else:
         start_epoch = 0
         print("=> no checkpoint found at '{}'".format(resume))
@@ -221,23 +234,37 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                     del tasks_outputs, labels, inputs, task_loss, preds
                     best_acc = epoch_acc
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
+
+                    epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
+
                     val_beat_counts = 0
                 else:
                     val_beat_counts += 1
 
-        if epoch % saving_freq == 0:
-            epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'lr': lr,
-                'val_beat_counts': val_beat_counts,
-                'epoch_acc': epoch_acc,
-                'best_acc': best_acc,
-                'arch': 'alexnet',
-                'model': model,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, epoch_file_name)
+                if epoch == num_epochs:
+                    epoch_file_name = exp_dir + '/' + 'last_epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
         print()
 
     time_elapsed = time.time() - since
@@ -250,9 +277,9 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
     return model, best_acc
 
 
-def fine_tune_SGD_LwF(dataset_path, previous_task_model_path, init_model_path='', exp_dir='', batch_size=200,
-                      num_epochs=100, lr=0.0004, init_freeze=1, pretrained=True, weight_decay=0, last_layer_name=6,
-                      saving_freq=5, reg_lambda=1):
+def fine_tune_LwF_main(dataset_path, previous_task_model_path, init_model_path='', exp_dir='', batch_size=200,
+                       num_epochs=100, lr=0.0004, init_freeze=True, pretrained=True, weight_decay=0, last_layer_name=6,
+                       saving_freq=5, reg_lambda=1, optimizer=1, reload_optimizer=True):
     print('lr is ' + str(lr))
 
     dsets = torch.load(dataset_path)
@@ -264,6 +291,7 @@ def fine_tune_SGD_LwF(dataset_path, previous_task_model_path, init_model_path=''
 
     use_gpu = torch.cuda.is_available()
     resume = os.path.join(exp_dir, 'epoch.pth.tar')
+    previous_model_path = ''
 
     if os.path.isfile(resume):
         checkpoint = torch.load(resume)
@@ -277,6 +305,9 @@ def fine_tune_SGD_LwF(dataset_path, previous_task_model_path, init_model_path=''
     else:
         model_ft = torch.load(previous_task_model_path)
 
+        if 'best_model.pth.tar' in previous_task_model_path:
+            previous_model_path = previous_task_model_path.replace('best_model.pth.tar', 'epoch.pth.tar')
+
         if not (type(model_ft) is AlexNet_LwF):
             last_layer_index = (len(model_ft.classifier._modules) - 1)
             model_ft = AlexNet_LwF(model_ft, last_layer_name=last_layer_index)
@@ -284,17 +315,17 @@ def fine_tune_SGD_LwF(dataset_path, previous_task_model_path, init_model_path=''
             model_ft.num_ftrs = num_ftrs
 
         original_model = copy.deepcopy(model_ft)
-
+        #
         if not init_freeze:
 
             model_ft.model.classifier.add_module(str(len(model_ft.model.classifier._modules)),
                                                  nn.Linear(model_ft.num_ftrs, len(dset_classes)))
-        else:
-
-            init_model = torch.load(init_model_path)
-            model_ft.model.classifier.add_module(str(len(model_ft.model.classifier._modules)),
-                                                 init_model.classifier[6])
-            del init_model
+        # else:
+        #     print(init_model_path)
+        #     init_model = torch.load(init_model_path)
+        #     model_ft.model.classifier.add_module(str(len(model_ft.model.classifier._modules)),
+        #                                          init_model.classifier[6])
+        #     del init_model
             # do something else
         if not os.path.exists(exp_dir):
             os.makedirs(exp_dir)
@@ -309,17 +340,24 @@ def fine_tune_SGD_LwF(dataset_path, previous_task_model_path, init_model_path=''
 
     criterion = nn.CrossEntropyLoss()
 
-    optimizer_ft = optim.SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
+    if optimizer == 0:
+        optimizer_ft = optim.SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
+    elif optimizer == 1:
+        optimizer_ft = optim.Adam(model_ft.parameters(), lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=weight_decay)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
 
     model_ft = train_model_lwf(model_ft, original_model, criterion, optimizer_ft, lr, dset_loaders, dset_sizes, use_gpu,
-                               num_epochs, exp_dir, resume,
+                               num_epochs, exp_dir, resume, temperature=2, previous_model_path=previous_model_path,
                                saving_freq=saving_freq,
-                               reg_lambda=reg_lambda)
+                               reg_lambda=reg_lambda,
+                               reload_optimizer=reload_optimizer)
 
     return model_ft
 
 
-def fine_tune_freeze(dataset_path, model_path, exp_dir, batch_size=100, num_epochs=100, lr=0.0004):
+def fine_tune_freeze(dataset_path, model_path, exp_dir, batch_size=100, num_epochs=100, lr=0.0004, optimizer=1):
     print('lr is ' + str(lr))
 
     dsets = torch.load(dataset_path)
@@ -350,13 +388,21 @@ def fine_tune_freeze(dataset_path, model_path, exp_dir, batch_size=100, num_epoc
         num_ftrs = model_ft.classifier[last_layer_index].in_features
 
     model_ft.classifier._modules[last_layer_index] = nn.Linear(num_ftrs, len(dset_classes))
+
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
     if use_gpu:
         model_ft = model_ft.cuda()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.SGD(model_ft.classifier._modules[last_layer_index].parameters(), lr, momentum=0.9)
+    if optimizer == 0:
+        optimizer_ft = optim.SGD(model_ft.classifier._modules[last_layer_index].parameters(), lr, momentum=0.9)
+    elif optimizer == 1:
+        optimizer_ft = optim.Adam(model_ft.classifier._modules[last_layer_index].parameters(), lr)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
+
     model_ft = SGD_Training.train_model(model_ft, criterion, optimizer_ft, lr, dset_loaders, dset_sizes, use_gpu,
                                         num_epochs, exp_dir, resume)
     return model_ft
