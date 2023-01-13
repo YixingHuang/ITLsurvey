@@ -8,6 +8,6 @@ src/methods/__pycache__/
 src/methods/Finetune/__pycache__/
 src/methods/SI/__pycache__/
 src/methods/MAS/__pycache__/
+src/framework/__pycache__/
 
-
-src/methods/__pycache__/method.cpython-37.pyc
+src/framework/__pycache__/eval.cpython-37.pyc

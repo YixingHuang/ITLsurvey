@@ -252,13 +252,14 @@ class ConcatDatasetDynamicLabels(torch.utils.data.ConcatDataset):
         the output labels are shifted by the dataset index which differs from the pytorch implementation that return the original labels
     """
 
-    def __init__(self, datasets, classes_len):
+    def __init__(self, datasets, classes_len, init_freeze=True):
         """
         :param datasets: List of Imagefolders
         :param classes_len: List of class lengths for each imagefolder
         """
         super(ConcatDatasetDynamicLabels, self).__init__(datasets)
         self.cumulative_classes_len = list(accumulate(classes_len))
+        self.init_freeze = init_freeze
 
     def __getitem__(self, idx):
         dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
@@ -268,5 +269,8 @@ class ConcatDatasetDynamicLabels(torch.utils.data.ConcatDataset):
         else:
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
             img, label = self.datasets[dataset_idx][sample_idx]
-            label = label + self.cumulative_classes_len[dataset_idx - 1]  # Shift Labels
+            if self.init_freeze:
+                label = label  # NO Shift Labels
+            else:
+                label = label + self.cumulative_classes_len[dataset_idx - 1]  # Shift Labels
         return img, label

@@ -85,8 +85,11 @@ def eval_single_model_all_tasks(args, manager, ds_paths):
         del joint_dataset
         joint_class_to_fc_idx = {class_name: idx for idx, class_name in enumerate(joint_classes)}
     else:
-        joint_dataloader, _, dset_classes = manager.method.compose_dataset(joint_ds_path, args.batch_size)
-        joint_classes = sum(dset_classes['train'], [])
+        joint_dataloader, _, dset_classes = manager.method.compose_dataset(joint_ds_path, args.batch_size, args.init_freeze)
+        if args.init_freeze:
+            joint_classes = dset_classes['train']
+        else:
+            joint_classes = sum(dset_classes['train'], [])
 
     # Check with separate classes
     args.tasks_idxes = []  # idxes in joint outputlayer
@@ -99,17 +102,25 @@ def eval_single_model_all_tasks(args, manager, ds_paths):
             task_idxes = [joint_class_to_fc_idx[task_class] for task_class in task_classes
                           if task_class in joint_class_to_fc_idx]  # comment out
         elif joint_dataloader is not None:
-            if dataset_idx == 0:
+            if args.init_freeze:
+                # HYX  modification for multicenter scenario, fixed classifier
                 task_idxes = [idx for idx in range(len(task_classes))]
             else:
-                # task_idxes = [idx + joint_dataloader['train'].dataset.cumulative_classes_len[dataset_idx - 1]
-                #               for idx in range(len(task_classes))]
-                task_idxes = [idx for idx in range(len(task_classes))] #HYX modification for multicenter collaboration scenario
+                if dataset_idx == 0:
+                    task_idxes = [idx for idx in range(len(task_classes))]
+                else:
+                    task_idxes = [idx + joint_dataloader['train'].dataset.cumulative_classes_len[dataset_idx - 1]
+                              for idx in range(len(task_classes))]
         else:
             raise Exception()
-        args.tasks_idxes.append(sorted(task_idxes))
-        tasks_classes.append(task_classes)
-        tasks_output_count += len(task_classes)
+        if args.init_freeze:  #HYX  it is repeated, but fine
+            args.tasks_idxes = sorted(task_idxes)
+            tasks_classes = task_classes
+            tasks_output_count = len(task_classes)
+        else:
+            args.tasks_idxes.append(sorted(task_idxes))
+            tasks_classes.append(task_classes)
+            tasks_output_count += len(task_classes)
 
     print("{} classes in joint set, {} classes in separate sets".format(len(joint_classes), tasks_output_count))
     assert len(joint_classes) == tasks_output_count
@@ -120,7 +131,6 @@ def eval_single_model_all_tasks(args, manager, ds_paths):
                                                                               joint_full_batch=True))
     try:
         # All task results
-        print("HYX: ", ds_paths)
         for dataset_index in range(args.test_starting_task_count - 1, args.test_max_task_count):
             args.dataset_index = dataset_index
             args.dataset_path = ds_paths[dataset_index]

@@ -1076,7 +1076,8 @@ class Finetune(Method):
         if not isinstance(dataset_path, list):  # If single path string
             dataset_path = [dataset_path]
 
-        dset_dataloader, cumsum_dset_sizes, dset_classes = Finetune.compose_dataset(dataset_path, args.batch_size)
+        dset_dataloader, cumsum_dset_sizes, dset_classes = Finetune.compose_dataset(dataset_path, args.batch_size,
+                                                                                    init_freeze=args.init_freeze)
         return trainFT.fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes,
                                      model_path=manager.previous_task_model_path,
                                      exp_dir=manager.gridsearch_exp_dir,
@@ -1084,7 +1085,7 @@ class Finetune(Method):
                                      weight_decay=args.weight_decay,
                                      enable_resume=True,  # Only resume when models saved
                                      save_models_mode=True,
-                                     replace_last_classifier_layer=True,
+                                     replace_last_classifier_layer=not args.init_freeze,
                                      freq=args.saving_freq,
                                      optimizer=args.optimizer
                                      )
@@ -1105,7 +1106,7 @@ class Finetune(Method):
         os.symlink(utilities.utils.get_relative_path(manager.best_exp_grid_node_dirname, segments=2), exp_dir)
 
     @staticmethod
-    def compose_dataset(dataset_path, batch_size):
+    def compose_dataset(dataset_path, batch_size, init_freeze=True):
         """Append all datasets in list, return single dataloader"""
         dset_imgfolders = {x: [] for x in ['train', 'val']}
         dset_classes = {x: [] for x in ['train', 'val']}
@@ -1115,13 +1116,16 @@ class Finetune(Method):
 
             for mode in ['train', 'val']:
                 dset_imgfolders[mode].append(dset_wrapper[mode])
-                dset_classes[mode].append(dset_wrapper[mode].classes)
+                if init_freeze:
+                    dset_classes[mode] = dset_wrapper[mode].classes
+                else:
+                    dset_classes[mode].append(dset_wrapper[mode].classes)
                 dset_sizes[mode].append(len(dset_wrapper[mode]))
 
         cumsum_dset_sizes = {mode: sum(dset_sizes[mode]) for mode in dset_sizes}
         classes_len = {mode: [len(ds) for ds in dset_classes[mode]] for mode in dset_classes}
         dset_dataloader = {x: torch.utils.data.DataLoader(
-            ConcatDatasetDynamicLabels(dset_imgfolders[x], classes_len[x]),
+            ConcatDatasetDynamicLabels(dset_imgfolders[x], classes_len[x], init_freeze=init_freeze),
             batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
             for x in ['train', 'val']}  # Concat into 1 dataset
         print("dset_classes: {}, dset_sizes: {}".format(dset_classes, cumsum_dset_sizes))
