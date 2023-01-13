@@ -976,19 +976,21 @@ class EBLL(Method):
         return os.path.join(best_autoencoder_path, 'best_model.pth.tar')
 
     def train(self, args, manager, hyperparams):
-        return trainEBLL.fine_tune_SGD_EBLL(dataset_path=manager.current_task_dataset_path,
-                                            previous_task_model_path=manager.previous_task_model_path,
-                                            autoencoder_model_path=manager.autoencoder_model_path,
-                                            init_model_path=args.init_model_path,
-                                            exp_dir=manager.heuristic_exp_dir,
-                                            batch_size=args.batch_size,
-                                            num_epochs=args.num_epochs,
-                                            lr=args.lr,
-                                            init_freeze=args.init_freeze,
-                                            reg_alpha=hyperparams['ebll_reg_alpha'],
-                                            weight_decay=args.weight_decay,
-                                            saving_freq=args.saving_freq,
-                                            reg_lambda=hyperparams['reg_lambda'])
+        return trainEBLL.fine_tune_EBLL_main(dataset_path=manager.current_task_dataset_path,
+                                             previous_task_model_path=manager.previous_task_model_path,
+                                             autoencoder_model_path=manager.autoencoder_model_path,
+                                             init_model_path=args.init_model_path,
+                                             exp_dir=manager.heuristic_exp_dir,
+                                             batch_size=args.batch_size,
+                                             num_epochs=args.num_epochs,
+                                             lr=args.lr,
+                                             init_freeze=args.init_freeze,
+                                             reg_alpha=hyperparams['ebll_reg_alpha'],
+                                             weight_decay=args.weight_decay,
+                                             saving_freq=args.saving_freq,
+                                             reg_lambda=hyperparams['reg_lambda'],
+                                             optimizer=args.optimizer,
+                                             reload_optimizer=args.reload_optimizer)
 
     def get_output(self, images, args):
         try:

@@ -229,7 +229,7 @@ def termination_protocol(since, best_acc):
 
 def train_model_ebll(model, original_model, criterion, code_criterion, optimizer, lr, dset_loaders, dset_sizes, use_gpu,
                      num_epochs, exp_dir='./', resume='', temperature=2, reg_alpha=1e-6, saving_freq=5,
-                     reg_lambda=1):
+                     reg_lambda=1, previous_model_path='', reload_optimizer=True):
     print('dictoinary length' + str(len(dset_loaders)))
     # set orginal model to eval mode
     original_model.eval()
@@ -253,6 +253,18 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
         val_beat_counts = checkpoint['val_beat_counts']
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(resume, checkpoint['epoch']))
+    elif os.path.isfile(previous_model_path) and reload_optimizer:
+        start_epoch = 0
+        print("=> no checkpoint found at '{}'".format(resume))
+        print("load checkpoint from previous task/center model at '{}'".format(previous_model_path))
+        checkpoint = torch.load(previous_model_path)
+        # model.load_state_dict(checkpoint['state_dict']) # has already been loaded
+        lr = checkpoint['lr']
+        print("lr is ", lr)
+        print('load optimizer')
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint '{}' (epoch {})"
+              .format(previous_model_path, checkpoint['epoch']))
     else:
         start_epoch = 0
         print("=> no checkpoint found at '{}'".format(resume))
@@ -371,23 +383,38 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
                     del preds
                     best_acc = epoch_acc
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
+
+                    print('new best val accuracy')
+                    epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
+
                     val_beat_counts = 0
                 else:
                     val_beat_counts += 1
 
-        if epoch % saving_freq == 0 or (phase == 'val' and epoch_acc > best_acc):
-            epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'lr': lr,
-                'val_beat_counts': val_beat_counts,
-                'epoch_acc': epoch_acc,
-                'best_acc': best_acc,
-                'arch': 'alexnet',
-                'model': model,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, epoch_file_name)
+                if epoch == num_epochs:
+                    epoch_file_name = exp_dir + '/' + 'last_epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
         print()
 
     termination_protocol(since, best_acc)
@@ -447,9 +474,9 @@ def fine_tune_Adam_Autoencoder(dataset_path, previous_task_model_path, exp_dir='
     return model_ft, best_acc
 
 
-def fine_tune_SGD_EBLL(dataset_path, previous_task_model_path, autoencoder_model_path, init_model_path='', exp_dir='',
-                       batch_size=200, num_epochs=100, lr=0.0004, init_freeze=1, weight_decay=0,
-                       reg_alpha=1e-6, saving_freq=5, reg_lambda=1):
+def fine_tune_EBLL_main(dataset_path, previous_task_model_path, autoencoder_model_path, init_model_path='', exp_dir='',
+                        batch_size=200, num_epochs=100, lr=0.0004, init_freeze=1, weight_decay=0,
+                        reg_alpha=1e-6, saving_freq=5, reg_lambda=1, optimizer=1, reload_optimizer=True):
     """ Train the neural network, given trained auto encoders of previous tasks. """
     print("*" * 50, " FULL MODEL TRAINING", "*" * 50)
     print('lr is ' + str(lr))
@@ -470,6 +497,10 @@ def fine_tune_SGD_EBLL(dataset_path, previous_task_model_path, autoencoder_model
     print("Starting from previous model: " + previous_task_model_path)
     model_ft = torch.load(previous_task_model_path)
 
+    previous_model_path = ''
+    if 'best_model.pth.tar' in previous_task_model_path:
+        previous_model_path = previous_task_model_path.replace('best_model.pth.tar', 'epoch.pth.tar')
+
     if not (type(model_ft) is AlexNet_EBLL):
         print("Initial model is no ModelWrapperEBLL, creating wrapper object")
         last_layer_index = (len(model_ft.classifier._modules) - 1)
@@ -487,12 +518,12 @@ def fine_tune_SGD_EBLL(dataset_path, previous_task_model_path, autoencoder_model
     if not init_freeze:
         print("No freeze mode")
         model_ft.classifier.add_module(str(len(model_ft.classifier._modules)), nn.Linear(num_ftrs, len(dset_classes)))
-    else:
-        print("Freeze mode")
-        init_model = torch.load(init_model_path)
-        model_ft.classifier.add_module(str(len(model_ft.classifier._modules)),
-                                       init_model.classifier[model_ft.last_layer_name])
-        del init_model
+    # else:
+    #     print("Freeze mode")
+    #     init_model = torch.load(init_model_path)
+    #     model_ft.classifier.add_module(str(len(model_ft.classifier._modules)),
+    #                                    init_model.classifier[model_ft.last_layer_name])
+    #     del init_model
         # do something else
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
@@ -509,12 +540,20 @@ def fine_tune_SGD_EBLL(dataset_path, previous_task_model_path, autoencoder_model
     criterion = nn.CrossEntropyLoss()
     encoder_criterion = nn.MSELoss()
     params = list(model_ft.features.parameters()) + list(model_ft.classifier.parameters())
-    optimizer_ft = optim.SGD(params, lr, momentum=0.9, weight_decay=weight_decay)
+    if optimizer == 0:
+        optimizer_ft = optim.SGD(params, lr, momentum=0.9, weight_decay=weight_decay)
+    elif optimizer == 1:
+        optimizer_ft = optim.Adam(params, lr, weight_decay=weight_decay)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
     print("DONE Config training")
 
     model_ft = train_model_ebll(model_ft, original_model, criterion, encoder_criterion, optimizer_ft, lr, dset_loaders,
                                 dset_sizes, use_gpu, num_epochs, exp_dir, resume, reg_alpha=reg_alpha,
-                                saving_freq=saving_freq, reg_lambda=reg_lambda)
+                                saving_freq=saving_freq, reg_lambda=reg_lambda,
+                                previous_model_path=previous_model_path,
+                                reload_optimizer=reload_optimizer)
 
     return model_ft
 
