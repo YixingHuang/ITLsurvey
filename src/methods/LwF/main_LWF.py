@@ -232,6 +232,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
             if phase == 'val':
                 if epoch_acc > best_acc:
                     del tasks_outputs, labels, inputs, task_loss, preds
+                    print('new best val accuracy')
                     best_acc = epoch_acc
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
 
