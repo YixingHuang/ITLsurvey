@@ -47,13 +47,13 @@ method_data_entries = []
 # gridsearch_names = ['Adam_unbalancedDataAmountMidLastEpoch', 'Adam_unbalancedDataAmountMidLastEpoch_repeat2', 'Adam_unbalancedDataAmountMidLastEpoch_repeat3', 'Adam_unbalancedDataAmountMidLastEpoch_repeat4', 'Adam_unbalancedDataAmountMidLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpoch', 'Adam_unbalancedDataAmountLastEpoch_repeat2', 'Adam_unbalancedDataAmountLastEpoch_repeat3', 'Adam_unbalancedDataAmountLastEpoch_repeat4', 'Adam_unbalancedDataAmountLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpochE100', 'Adam_unbalancedDataAmountLastEpochE100_repeat2', 'Adam_unbalancedDataAmountLastEpochE100_repeat3', 'Adam_unbalancedDataAmountLastEpochE100_repeat4', 'Adam_unbalancedDataAmountLastEpochE100_repeat5']
-gridsearch_names = ['Adam_unbalancedDataAmountLastEpochE100']
+gridsearch_names = ['Adam_10Classes']
 
 #############################################
 methods = [Joint(), SI()]
 # for method in methods:
 for gridsearch_name in gridsearch_names:
-    method = SI()
+    method = Joint()
     # method = FineTuning()
     # method_names.append(method.name)
     label = None
