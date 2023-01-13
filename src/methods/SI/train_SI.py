@@ -308,10 +308,7 @@ class Elastic_Adam(optim.Adam):
                     d_p.add_(regulizer)
                     # p.grad.data.add_(regulizer)
                     # print("HYX, gradient sum after operation:", torch.sum(p.grad.data.clone()).item(), index)
-                    del weight_dif
-                    del omega
-                    del regulizer
-                    del curr_wegiht_val
+                    del weight_dif, omega, regulizer, curr_wegiht_val, init_val
                     # HERE MY CODE ENDS
                     grads.append(p.grad)
 

@@ -5,7 +5,8 @@ import time
 import torch
 import torch.optim as optim
 from torch.autograd import Variable
-
+from torch import Tensor
+from typing import List
 import utilities.utils as utils
 
 
@@ -86,14 +87,155 @@ class Weight_Regularized_SGD(optim.SGD):
         return loss
 
 
+class Weight_Regularized_Adam(optim.Adam):
+    r"""Implements stochastic gradient descent with an EWC penalty on important weights for previous tasks
+    """
+
+    def __init__(self, params, lr=0.001, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False):
+        super(Weight_Regularized_Adam, self).__init__(params, lr, betas, eps, weight_decay, amsgrad)
+
+    def __setstate__(self, state):
+        super(Weight_Regularized_Adam, self).__setstate__(state)
+
+    def step(self, reg_params, closure=None):
+        """Performs a single optimization step.
+        Arguments:
+            closure (callable, optional): A closure that reevaluates the model
+                and returns the loss.
+            reg_params: a dictionary where importance weights for each parameter is stored.
+        """
+
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        # index = 0
+        reg_lambda = reg_params.get('lambda')
+        for group in self.param_groups:
+            params_with_grad = []
+            grads = []
+            exp_avgs = []
+            exp_avg_sqs = []
+            state_sums = []
+            max_exp_avg_sqs = []
+            state_steps = []
+
+            for p in group['params']:
+                if p.grad is not None:
+                    params_with_grad.append(p)
+                    if p.grad.is_sparse:
+                        raise RuntimeError('Adam does not support sparse gradients, please consider SparseAdam instead')
+
+                    # HERE MY CODE GOES, HYX
+                    d_p = p.grad.data
+                    reg_param = reg_params.get(p)
+                    omega = reg_param.get('omega')
+                    init_val = reg_param.get('init_val')
+                    curr_wegiht_val = p.data.clone()
+                    init_val = init_val.cuda()
+                    omega = omega.cuda()
+                    weight_dif = curr_wegiht_val.add(-1, init_val)
+                    regulizer = torch.mul(weight_dif, 2 * reg_lambda * omega)
+                    #
+                    # print("HYX, gradient sum before operation:", torch.sum(p.grad.data.clone()).item(), index)
+                    d_p.add_(regulizer)
+                    # p.grad.data.add_(regulizer)
+                    # print("HYX, gradient sum after operation:", torch.sum(p.grad.data.clone()).item(), index)
+                    del weight_dif, curr_wegiht_val, omega, init_val, regulizer
+                    # HERE MY CODE ENDS
+                    grads.append(p.grad)
+
+                    state = self.state[p]
+                    # Lazy state initialization
+                    if len(state) == 0:
+                        state['step'] = 0
+                        # Exponential moving average of gradient values
+                        state['exp_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                        # Exponential moving average of squared gradient values
+                        state['exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                        if group['amsgrad']:
+                            # Maintains max of all exp. moving avg. of sq. grad. values
+                            state['max_exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+
+                    exp_avgs.append(state['exp_avg'])
+                    exp_avg_sqs.append(state['exp_avg_sq'])
+
+                    if group['amsgrad']:
+                        max_exp_avg_sqs.append(state['max_exp_avg_sq'])
+
+                    # update the steps for each param group update
+                    state['step'] += 1
+                    # record the step after step update
+                    state_steps.append(state['step'])
+
+            beta1, beta2 = group['betas']
+            adamOriginal(params_with_grad,
+                         grads,
+                         exp_avgs,
+                         exp_avg_sqs,
+                         max_exp_avg_sqs,
+                         state_steps,
+                         group['amsgrad'],
+                         beta1,
+                         beta2,
+                         group['lr'],
+                         group['weight_decay'],
+                         group['eps']
+                         )
+        return loss
+
+def adamOriginal(
+         params: List[Tensor],
+         grads: List[Tensor],
+         exp_avgs: List[Tensor],
+         exp_avg_sqs: List[Tensor],
+         max_exp_avg_sqs: List[Tensor],
+         state_steps: List[int],
+         amsgrad: bool,
+         beta1: float,
+         beta2: float,
+         lr: float,
+         weight_decay: float,
+         eps: float):
+    for i, param in enumerate(params):
+
+        grad = grads[i]
+        exp_avg = exp_avgs[i]
+        exp_avg_sq = exp_avg_sqs[i]
+        step = state_steps[i]
+        if amsgrad:
+            max_exp_avg_sq = max_exp_avg_sqs[i]
+
+        bias_correction1 = 1 - beta1 ** step
+        bias_correction2 = 1 - beta2 ** step
+
+        if weight_decay != 0:
+            grad = grad.add(param, alpha=weight_decay)
+
+        # Decay the first and second moment running average coefficient
+        exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
+        exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+        if amsgrad:
+            # Maintains the maximum of all 2nd moment running avg. till now
+            torch.maximum(max_exp_avg_sq, exp_avg_sq, out=max_exp_avg_sq)
+            # Use the max. for normalizing running avg. of gradient
+            denom = (max_exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps)
+        else:
+            denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps)
+
+        step_size = lr / bias_correction1
+        param.data.addcdiv_(exp_avg, denom, value=-step_size)
+
+
 def set_lr(optimizer, lr, count):
     """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
     continue_training = True
-    if count > 10:
+    if count > 20:
         continue_training = False
         print("training terminated")
-    if count == 5:
-        lr = lr * 0.1
+    if count == 10:
+        lr = lr * 0.5
         print('lr is set to {}'.format(lr))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -109,7 +251,7 @@ def traminate_protocol(since, best_acc):
 
 
 def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_gpu, num_epochs, exp_dir='./',
-                resume='', saving_freq=5):
+                resume='', previous_model_path='', saving_freq=5, reload_optimizer=True):
     """
     Trains a deep learning model with EWC penalty.
     Empirical Fisher is used instead of true FIM for efficiency and as there are no significant differences in results.
@@ -136,6 +278,18 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(resume, checkpoint['epoch']))
+    elif os.path.isfile(previous_model_path) and reload_optimizer:
+        start_epoch = 0
+        print("=> no checkpoint found at '{}'".format(resume))
+        print("load checkpoint from previous task/center model at '{}'".format(previous_model_path))
+        checkpoint = torch.load(previous_model_path)
+        # model.load_state_dict(checkpoint['state_dict']) # has already been loaded
+        lr = checkpoint['lr']
+        print("lr is ", lr)
+        print('load optimizer')
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint '{}' (epoch {})"
+              .format(previous_model_path, checkpoint['epoch']))
     else:
         start_epoch = 0
         print("=> no checkpoint found at '{}'".format(resume))
@@ -209,22 +363,37 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                     del outputs, labels, inputs, loss, preds
                     best_acc = epoch_acc
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
+
+                    epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
+
                     val_beat_counts = 0
                 else:
                     val_beat_counts += 1
-        if epoch % saving_freq == 0:
-            epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'lr': lr,
-                'val_beat_counts': val_beat_counts,
-                'epoch_acc': epoch_acc,
-                'best_acc': best_acc,
-                'arch': 'alexnet',
-                'model': model,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, epoch_file_name)
+
+                if epoch == num_epochs:
+                    epoch_file_name = exp_dir + '/' + 'last_epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
         print()
 
     time_elapsed = time.time() - since

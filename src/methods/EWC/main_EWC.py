@@ -13,7 +13,7 @@ import data.imgfolder as ImageFolderTrainVal
 
 def fine_tune_EWC_acuumelation(dataset_path, previous_task_model_path, exp_dir, data_dir, reg_sets, reg_lambda=1,
                                num_epochs=100, lr=0.0008, batch_size=200, weight_decay=0, head_shared=True,
-                               saving_freq=5):
+                               saving_freq=5, optimizer=1, reload_optimizer=True):
     """
     dataset_path:               current task dataset.
     previous_task_model_path:   model of the first task
@@ -38,6 +38,10 @@ def fine_tune_EWC_acuumelation(dataset_path, previous_task_model_path, exp_dir, 
     start_preprocess_time = time.time()
     model_ft = torch.load(previous_task_model_path)
 
+    previous_model_path = ''
+    if 'best_model.pth.tar' in previous_task_model_path:
+        previous_model_path = previous_task_model_path.replace('best_model.pth.tar', 'epoch.pth.tar')
+
     # update the omega for the previous task, accumelate it over previous omegas
     model_ft = accumulate_EWC_weights(data_dir, reg_sets, model_ft, batch_size=batch_size)
     # set the lambda for the EWC regularizer
@@ -59,7 +63,14 @@ def fine_tune_EWC_acuumelation(dataset_path, previous_task_model_path, exp_dir, 
         model_ft = model_ft.cuda()
 
     # call the EWC optimizer
-    optimizer_ft = EWC_SGD.Weight_Regularized_SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
+    if optimizer == 0:
+        optimizer_ft = EWC_SGD.Weight_Regularized_SGD(model_ft.parameters(), lr, momentum=0.9, weight_decay=weight_decay)
+    elif optimizer == 1:
+        optimizer_ft = EWC_SGD.Weight_Regularized_Adam(model_ft.parameters(), lr, betas=(0.9, 0.999), eps=1e-8,
+                                                      weight_decay=weight_decay)
+    else:
+        raise NotImplementedError('Optimizer not implemented. '
+                                  'Please set to 0 for SGD or 1 for Adam! Currrent optimizer is ', optimizer)
 
     if not os.path.exists(exp_dir):
         print("Going to exp_dir=", exp_dir)
@@ -71,7 +82,7 @@ def fine_tune_EWC_acuumelation(dataset_path, previous_task_model_path, exp_dir, 
     # train the model
     # this training functin passes the reg params to the optimizer to be used for penalizing changes on important params
     model_ft, acc = EWC_SGD.train_model(model_ft, criterion, optimizer_ft, lr, dset_loaders, dset_sizes, use_gpu,
-                                        num_epochs, exp_dir, resume, saving_freq=saving_freq)
+                                        num_epochs, exp_dir, resume, previous_model_path, saving_freq=saving_freq, reload_optimizer=reload_optimizer)
 
     return model_ft, acc
 
@@ -83,16 +94,17 @@ def accumulate_EWC_weights(data_dir, reg_sets, model_ft, batch_size):
     """
 
     # ========================
-    # define a transformation without augmentation, on the given dataset path.
-    data_transform = transforms.Compose([
-        transforms.Scale(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+
     dset_loaders = []
     for data_path in reg_sets:
 
         if data_dir is not None:
+            # define a transformation without augmentation, on the given dataset path.
+            data_transform = transforms.Compose([
+                transforms.Scale(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
             dset = ImageFolderTrainVal(data_dir, data_path, data_transform)
         else:
             # if so then the reg_sets is a dataset by its own, this is the case for the mnist dataset

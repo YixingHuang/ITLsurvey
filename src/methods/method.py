@@ -682,7 +682,10 @@ class EWC(Method):
                                                    num_epochs=args.num_epochs,
                                                    lr=args.lr,
                                                    weight_decay=args.weight_decay,
-                                                   saving_freq=args.saving_freq)
+                                                   head_shared=args.init_freeze,
+                                                   saving_freq=args.saving_freq,
+                                                   optimizer=args.optimizer,
+                                                   reload_optimizer=args.reload_optimizer)
 
     def get_output(self, images, args):
         return get_output_def(args.model, args.heads, images, args.current_head_idx, args.final_layer_idx)
