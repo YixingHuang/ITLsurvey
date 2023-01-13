@@ -280,13 +280,13 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
         model = model.cuda()
         original_model = original_model.cuda()
 
-    for epoch in range(start_epoch, num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    for epoch in range(start_epoch, num_epochs + 2): #0th epoch does validation only
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     termination_protocol(since, best_acc)
@@ -304,18 +304,18 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
                 start_preprocess_time = time.time()
                 # get the inputs
                 inputs, labels = data
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     original_inputs = inputs.clone()
 
                 # wrap them in Variable
                 if use_gpu:
-                    if phase == 'train':
+                    if phase == 'train' and epoch > 0:
                         original_inputs = original_inputs.cuda()
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs.cuda()), \
                                      Variable(labels.cuda())
                 else:
-                    if phase == 'train':
+                    if phase == 'train' and epoch > 0:
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs), Variable(labels)
 
@@ -343,7 +343,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
                 code_loss = 0.0
                 # Apply distillation loss to all old tasks.
 
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     for idx in range(len(target_logits)):
                         dist_loss += distillation_loss(tasks_outputs[idx], target_logits[idx], temperature, scale[idx])
                     # backward + optimize only if in training phase
@@ -352,7 +352,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
 
                 total_loss = reg_lambda * dist_loss + task_loss + reg_alpha * code_loss
                 preprocessing_time += time.time() - start_preprocess_time
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     total_loss.backward()
                     optimizer.step()
 
@@ -362,7 +362,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
 
                 # statistics
                 running_loss += task_loss.data.item()
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     running_code_loss += code_loss.data.item()
                 running_corrects += torch.sum(preds == labels.data).item()
 
@@ -371,7 +371,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
             epoch_code_loss = running_code_loss / dset_sizes[phase]
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 print('TASK CODE LOSS: {:.4f}'.format(epoch_code_loss))
             # deep copy the model
             if phase == 'val':

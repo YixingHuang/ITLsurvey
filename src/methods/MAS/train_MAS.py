@@ -451,13 +451,13 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
     print(str(start_epoch))
     # pdb.set_trace()
-    for epoch in range(start_epoch, num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    for epoch in range(start_epoch, num_epochs + 2):
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)
@@ -493,7 +493,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     loss.backward()
                     # print('step')
                     optimizer.step(model.reg_params)
@@ -542,20 +542,20 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                     val_beat_counts = 0
                 else:
                     val_beat_counts += 1
-        # epoch_file_name=exp_dir+'/'+'epoch-'+str(epoch)+'.pth.tar'
-        # if epoch % saving_freq == 0:
-        #     epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
-        #     save_checkpoint({
-        #         'epoch': epoch + 1,
-        #         'arch': 'alexnet',
-        #         'lr': lr,
-        #         'val_beat_counts': val_beat_counts,
-        #         'model': model,
-        #         'epoch_acc': epoch_acc,
-        #         'best_acc': best_acc,
-        #         'state_dict': model.state_dict(),
-        #         'optimizer': optimizer.state_dict(),
-        #     }, epoch_file_name)
+
+                if epoch == num_epochs:
+                    epoch_file_name = exp_dir + '/' + 'last_epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
         print()
 
     time_elapsed = time.time() - since

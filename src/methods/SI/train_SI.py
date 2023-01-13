@@ -601,13 +601,13 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
     warning_NAN_counter = 0
     print("START EPOCH = ", str(start_epoch))
-    for epoch in range(start_epoch, num_epochs + 1):
+    for epoch in range(start_epoch, num_epochs + 2):
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)
@@ -640,7 +640,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     loss.backward()
                     # print('step')
                     optimizer.step(model.reg_params)

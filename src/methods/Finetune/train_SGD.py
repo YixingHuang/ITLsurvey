@@ -79,8 +79,8 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
     print(str(start_epoch))
 
-    for epoch in range(start_epoch, num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    for epoch in range(start_epoch, num_epochs + 2):
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
@@ -90,7 +90,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 len(dset_loaders[phase]),
                 [batch_time, data_time], prefix="Epoch: [{}]".format(epoch))
 
-            if phase == 'train':
+            if phase == 'train' and epoch > 0:
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     termination_protocol(since, best_acc)
@@ -131,7 +131,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train':
+                if phase == 'train' and epoch > 0:
                     loss.backward()
                     optimizer.step()
 
@@ -162,6 +162,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 if epoch_acc > best_acc:
                     del outputs, labels, inputs, loss, preds
                     best_acc = epoch_acc
+                    print('new best val accuracy')
                     if save_models_mode:
                         torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
                         print("-> new best model")
@@ -169,20 +170,19 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 else:
                     val_beat_counts += 1
 
-        # Epoch checkpoint
-        if save_models_mode and epoch % saving_freq == 0:
-            epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'lr': lr,
-                'val_beat_counts': val_beat_counts,
-                'epoch_acc': epoch_acc,
-                'best_acc': best_acc,
-                'arch': 'alexnet',
-                'model': model,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, epoch_file_name)
+                if epoch == num_epochs:
+                    epoch_file_name = exp_dir + '/' + 'last_epoch' + '.pth.tar'
+                    save_checkpoint({
+                        'epoch_acc': epoch_acc,
+                        'best_acc': best_acc,
+                        'epoch': epoch + 1,
+                        'lr': lr,
+                        'val_beat_counts': val_beat_counts,
+                        'arch': 'alexnet',
+                        'model': model,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                    }, epoch_file_name)
         print()
 
     termination_protocol(since, best_acc)
