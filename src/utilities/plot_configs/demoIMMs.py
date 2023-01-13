@@ -11,9 +11,9 @@ tr_results_root_path = utils.read_from_config(config, 'tr_results_root_path')
 models_root_path = utils.read_from_config(config, 'models_root_path')
 
 dataset = TinyImgnetDataset()
-# model = SmallVGG9(models_root_path, dataset.input_size)
+model = SmallVGG9(models_root_path, dataset.input_size)
 # model = BaseVGG9(models_root_path, dataset.input_size)
-model = DeepVGG22(models_root_path, dataset.input_size)
+# model = DeepVGG22(models_root_path, dataset.input_size)
 # Turn on/off
 plot_SI = True
 
@@ -34,7 +34,7 @@ method_data_entries = []
 gridsearch_name = "Adam_200Classes"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-methods = [FineTuning(), SI(), IMM('mean')]
+methods = [FineTuning(), SI(), IMM('mean'), MAS()]
 # methods = [FineTuning(), SI()]
 for method in methods:
     # method = SI()
