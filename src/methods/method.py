@@ -248,7 +248,7 @@ def set_hyperparams(method, hyperparams, static_params=False):
     split_lists = [x.strip() for x in hyperparams.split(';') if len(x) > 0]
     for split_list in split_lists:
         split_params = [float(x) for x in split_list.split(',') if not leave_default(x)]
-        # split_params = split_params[0] if len(split_params) == 1 else split_params
+        split_params = split_params[0] if len(split_params) == 1 else split_params
         if len(split_lists) == 1:
             hyperparam_vals = split_params
         else:
@@ -944,6 +944,7 @@ class EBLL(Method):
                 # autoencoder trained on the previous task dataset
                 start_time = time.time()
                 encoder_dim = int(encoder_dim)
+                print('hyper parameter', self.static_hyperparams['autoencoder_epochs'])
                 self.static_hyperparams['autoencoder_epochs'] = int(self.static_hyperparams['autoencoder_epochs'])
                 _, acc = trainEBLL.fine_tune_Adam_Autoencoder(dataset_path=args.previous_task_dataset_path,
                                                               previous_task_model_path=manager.previous_task_model_path,
