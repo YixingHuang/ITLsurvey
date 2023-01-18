@@ -28,8 +28,11 @@ cmd12 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name Adam_1
 cmd15 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name Adam_10Classes_batch5 --method_name  meanIMM  --ds_name tiny   --num_epochs 50  --batch_size 5  --n_iters 1 --seed 7   --no_maximal_plasticity_search  --first_task_basemodel_folder first_task_Adam_10Classes_batch5    --optimizer 1  --fixed_init_lr 0.001 --num_class 10'
 cmd16 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name Adam_10Classes_batch5 --method_name  meanIMM  --ds_name tiny   --test  --test_overwrite_mode --num_epochs 50  --batch_size 5  --n_iters 1 --seed 7   --no_maximal_plasticity_search  --first_task_basemodel_folder first_task_Adam_10Classes_batch5    --optimizer 1  --fixed_init_lr 0.001 --num_class 10'
 
+cmd17 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name Adam_10Classes_batch5 --method_name  modeIMM  --ds_name tiny   --num_epochs 50  --batch_size 5  --n_iters 1 --seed 7   --no_maximal_plasticity_search  --first_task_basemodel_folder first_task_Adam_10Classes_batch5    --optimizer 1  --fixed_init_lr 0.001 --num_class 10'
+cmd18 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name Adam_10Classes_batch5 --method_name  modeIMM  --ds_name tiny   --test  --test_overwrite_mode --num_epochs 50  --batch_size 5  --n_iters 1 --seed 7   --no_maximal_plasticity_search  --first_task_basemodel_folder first_task_Adam_10Classes_batch5    --optimizer 1  --fixed_init_lr 0.001 --num_class 10'
+
 # cmds = [cmd1, cmd2, cmd0, cmd11, cmd12, cmd3, cmd4, cmd5, cmd6, cmd9, cmd10, cmd7, cmd8]
-cmds = [cmd13, cmd14, cmd5, cmd6]
+cmds = [cmd17, cmd18]
 for cmd in cmds:
     os.system(cmd)
 

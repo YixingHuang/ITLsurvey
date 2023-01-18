@@ -7,7 +7,7 @@ and put them into different folders according to their image sizes.
 Different image sizes indicate different camera devices and hence can be assumed from different centers.
 
 Please put all the images in the "train" folder before running this script.
-The processed images will be saved in the "processed" folder with subdirectories named after image sizes.
+The processed images will be saved in the "./datasets/retina/processed/" folder with subdirectories named after image sizes.
 
 """
 
@@ -20,9 +20,9 @@ import os
 csv_file = open('C:/Data/RetinalData/trainLabels.csv', 'r')
 csv_reader = csv.reader(csv_file, delimiter=',')
 line_count = 0
-input_folder = 'C:/Data/RetinalData/train/'
+input_folder = 'C:/Data/RetinalData/train/' #modify this path according to your source data location
 suffix = '.jpeg'
-save_folder = 'C:/Data/RetinalData/processed/'
+save_folder = './datasets/retina/retina_preprocessed/'
 new_size = 256.0
 for row in csv_reader:
     line_count = line_count + 1

@@ -101,7 +101,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10):
                 img_paths[center_id]['classes'].extend(classes)
             img_paths[center_id]['class_to_idx'] = class_to_idx
             for class_index in range(0, len(classes)):
-                target = lines[class_index]
+                target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
                 allfiles = os.listdir(src_path)
                 imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in allfiles[initial_image_id: initial_image_id + nb_images_per_center]
@@ -149,7 +149,7 @@ def divide_into_centers_unbalanced_classes(root_path, center_count=5, num_classe
                     img_paths[center_id]['classes'].extend(classes)
                 img_paths[center_id]['class_to_idx'] = class_to_idx
                 for class_index in range(0, len(classes)):
-                    target = lines[class_index]
+                    target = classes[class_index]
                     src_path = os.path.join(root_path, subset, target, 'images')
                     allfiles = os.listdir(src_path)
                     imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in
@@ -171,7 +171,7 @@ def divide_into_centers_unbalanced_classes(root_path, center_count=5, num_classe
                 initial_image_id = 0
                 for center_id in range(1, center_count + 1):
                     end_image_id = initial_image_id + nb_images_per_center[center_id - 1]
-                    target = lines[class_index]
+                    target = classes[class_index]
                     src_path = os.path.join(root_path, subset, target, 'images')
                     allfiles = os.listdir(src_path)
                     imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in
@@ -223,7 +223,7 @@ def divide_into_centers_unbalanced(root_path, center_count=5, num_classes=10):
                 img_paths[center_id]['classes'].extend(classes)
             img_paths[center_id]['class_to_idx'] = class_to_idx
             for class_index in range(0, len(classes)):
-                target = lines[class_index]
+                target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
                 allfiles = os.listdir(src_path)
                 imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in

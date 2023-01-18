@@ -10,7 +10,7 @@ import os
 import torch
 import shutil
 import subprocess
-
+import csv
 from torchvision import transforms
 
 import utilities.utils as utils
@@ -20,21 +20,11 @@ from data.imgfolder import random_split, ImageFolderTrainVal
 def download_dset(path):
     utils.create_dir(path)
 
-    if not os.path.exists(os.path.join(path, 'tiny-imagenet-200.zip')):
-        subprocess.call(
-            "wget -P {} http://cs231n.stanford.edu/tiny-imagenet-200.zip".format(path),
-            shell=True)
-        print("Succesfully downloaded TinyImgnet dataset.")
-    else:
-        print("Already downloaded TinyImgnet dataset in {}".format(path))
+    if not os.path.exists(os.path.join(path, 'processed')):
 
-    if not os.path.exists(os.path.join(path, 'tiny-imagenet-200')):
-        subprocess.call(
-            "unzip {} -d {}".format(os.path.join(path, 'tiny-imagenet-200.zip'), path),
-            shell=True)
-        print("Succesfully extracted TinyImgnet dataset.")
+        print("Please manually download the data and preprocess the dataset.")
     else:
-        print("Already extracted TinyImgnet dataset in {}".format(os.path.join(path, 'tiny-imagenet-200')))
+        print("Already selected retina dataset in {}".format(os.path.join(path, 'retina_preprocessed')))
 
 
 def create_training_classes_file(root_path):
@@ -71,49 +61,81 @@ def preprocess_val(root_path):
         utils.attempt_move(os.path.join(val_path, 'images', imagename), this_class_dir)
 
 
-def divide_into_centers(root_path, center_count=10, num_classes=10):
+def divide_into_centers(root_path, center_count=10, num_classes=10, min_num=50, max_num=200):
     """
     Divides total subset data into multi-centers (into dirs "task_x").
+    center_count: number of centers
+    num_class: either 2 or 5 for retinal fundus images
+    min_num: the minimum number of images at each center
+    max_num: the maximum number of images used at each center (some centers have thounsands of images)
     :return:
     """
     print("Be patient: dividing into research centers...")
-    num_images = 500
-    nb_images_per_center = 500 // center_count
-    nb_images_per_center_val = 50 // center_count
-    assert 500 % nb_images_per_center == 0, "total 500 images per class must be divisible by nb images per center"
 
-    file_path = os.path.join(root_path, "classes.txt")
-    lines = [line.rstrip('\n') for line in open(file_path)]
-    assert len(lines) == 200, "Should have 200 classes, but {} lines in classes.txt".format(len(lines))
+    if num_classes == 5:
+        classes = ('absent', 'mild', 'moderate', 'severe', 'proliferative retinopathy')
+    elif num_classes == 2:
+        classes = ('healthy', 'diseased')
+    else:
+        raise NotImplementedError('num_class should be either 2 or 5!')
+    class_to_idx = {classes[i]: i for i in range(len(classes))}
+
     subsets = ['train', 'val']
     img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
+    folders = [f for f in os.listdir(root_path) if os.path.isdir(f)]
+    total_folders = len(folders)
+    print('total number of folders/centers is ', total_folders)
+    assert center_count <= total_folders, "center_count should be smaller than {}".format(total_folders)
 
-    for subset in subsets:
-        center_id = 1
-        if subset == 'val':
-            nb_images_per_center = nb_images_per_center_val
-            num_images = 50
-        # for initial_class in (range(0, len(lines), nb_images_per_center)):
-            # classes = lines[initial_class:initial_class + nb_images_per_center]
-        classes = lines[0:num_classes]
-        classes.sort()
-        class_to_idx = {classes[i]: i for i in range(len(classes))}
-        print("HYX", classes, class_to_idx)
+    folder_id = 0
+    for center_id in range(1, center_count + 1):
+        num_files = 0
+        while num_files < 50: #make sure more than 50 images in the folder
+            center_path = os.path.join(root_path, folders[folder_id])
+            allfiles = os.listdir(center_path)
+            allfiles = [f for f in allfiles if os.path.isfile(os.path.join(center_path, f))] ## make sure they are all image files
+            num_files = len(allfiles)
+            folder_id = folder_id + 1
+
+        for subset in subsets:
             # Make subset dataset dir for each center
         for initial_image_id in (range(0, num_images, nb_images_per_center)):
             if len(img_paths[center_id]['classes']) == 0:
                 img_paths[center_id]['classes'].extend(classes)
             img_paths[center_id]['class_to_idx'] = class_to_idx
             for class_index in range(0, len(classes)):
-                target = lines[class_index]
+                target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
                 allfiles = os.listdir(src_path)
                 imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in allfiles[initial_image_id: initial_image_id + nb_images_per_center]
                         if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
                 img_paths[center_id][subset].extend(imgs)
-            center_id = center_id + 1
+
     return img_paths
 
+def isIncluded(original_class, num_class):
+    if num_class == 2 and original_class == 1:
+        return False, original_class
+    elif num_class == 2:
+        new_class = 0 if original_class < 1 else 1
+        return True, new_class
+    else:
+        return True, original_class
+
+
+def getPatient2Class(csv_path):
+    csv_file = open(csv_path, 'r')
+    csv_reader = csv.reader(csv_file, delimiter=',')
+    line_count = 0
+    patient2class={}
+    for row in csv_reader:
+        line_count = line_count + 1 # only left eyes
+        if line_count % 2 == 1:
+            continue
+        patient_name = row[0]
+        disease_type = int(row[1])
+        patient2class.update({patient_name:disease_type})
+    return patient2class
 
 ## Unbalanced data with two dominant classes in each center
 def divide_into_centers_unbalanced_classes(root_path, center_count=5, num_classes=10):
@@ -332,7 +354,7 @@ def create_train_val_test_imagefolder_dict_joint(dataset_root, img_paths, outfil
     print("JOINT: Saved dictionary format of train/val/test dataset Imagefolders.")
 
 
-def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count=10, overwrite=False, balanced=True,
+def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count=10, overwrite=False,
                     num_class=10):
     """
     Main datapreparation code for Tiny Imagenet.
@@ -345,30 +367,14 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     """
     print("Preparing dataset")
     if not os.path.isdir(target_path):
-        raise Exception("TINYIMGNET PATH IS NON EXISTING DIR: ", target_path)
+        raise Exception("RETINA PATH IS NON EXISTING DIR: ", target_path)
 
-    if os.path.isdir(os.path.join(target_path, 'train')):
-        if survey_order:
-            shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "tinyimgnet_classes.txt"),
-                            os.path.join(target_path, 'classes.txt'))
-        else:
-            create_training_classes_file(target_path)
-    else:
-        print("Already cleaned up original train")
-
-    if not os.path.isfile(os.path.join(target_path, 'VAL_PREPROCESS.TOKEN')):
-        preprocess_val(target_path)
-        torch.save({}, os.path.join(target_path, 'VAL_PREPROCESS.TOKEN'))
-    else:
-        print("Already cleaned up original val")
-
-    # Make different subset dataset for each task
+    # Make different subset dataset for each task/center
     if not os.path.isfile(os.path.join(target_path, "DIV.TOKEN")) or overwrite:
         print("PREPARING DATASET: DIVIDING INTO {} TASKS".format(task_count))
-        if balanced:
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class)
-        else:
-            img_paths = divide_into_centers_unbalanced(target_path, center_count=task_count, num_classes=num_class)
+
+        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class)
+
         torch.save({}, os.path.join(target_path, 'DIV.TOKEN'))
     else:
         print("Already divided into tasks")

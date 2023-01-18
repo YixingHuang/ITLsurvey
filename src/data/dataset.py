@@ -8,7 +8,7 @@ import utilities.utils as utils
 import data.tinyimgnet_dataprep as dataprep_tiny
 import data.inaturalist_dataprep as dataprep_inat
 import data.recogseq_dataprep as dataprep_recogseq
-
+import data.retina_dataprep as dataprep_retina
 
 def parse(ds_name, ntasks, balanced=True, num_class=10):
     """Parse arg string to actual object."""
@@ -229,6 +229,71 @@ class TinyImgnetDataset(CustomDataset):
             dataprep_tiny.download_dset(os.path.dirname(self.dataset_root))
             dataprep_tiny.prepare_dataset(self, self.dataset_root, task_count=self.task_count, survey_order=True,
                                           overwrite=overwrite, balanced=balanced, num_class=num_class)
+        # Dataset with bare 64x64, no 56x56 crop
+        if not crop:
+            self.dataset_root = os.path.join(self.dataset_root, 'no_crop')
+
+        # Version with how many tasks
+        self.tasks_subdir = "{}tasks".format(task_count)
+        if task_count != self.def_task_count:
+            self.test_results_dir += self.tasks_subdir
+            self.train_exp_results_dir += self.tasks_subdir
+
+        for task_name in range(1, self.task_count + 1):
+            dsets = torch.load(self.get_task_dataset_path(str(task_name)))
+            dset_sizes = {x: len(dsets[x]) for x in ['train', 'val', 'test']}
+            dset_classes = dsets['train'].classes
+            self.classes_per_task[str(task_name)] = dset_classes
+            print("Task {}: dset_sizes = {}, #classes = {}".format(str(task_name), dset_sizes, len(dset_classes)))
+
+    def get_task_dataset_path(self, task_name=None, rnd_transform=False):
+        if task_name is None:  # JOINT
+            return os.path.join(self.dataset_root, self.joint_dataset_file)
+
+        filename = self.transformed_dataset_file if rnd_transform else self.raw_dataset_file
+        return os.path.join(self.dataset_root, self.tasks_subdir, task_name, filename)
+
+    def get_task_dataset_path_icl(self, task_name=None, rnd_transform=False, total_tasks=5):
+        if task_name is None:  # JOINT
+            return os.path.join(self.dataset_root, self.joint_dataset_file)
+        task_count = int(task_name)
+        task_id = task_count % total_tasks
+        if task_id == 0:
+            task_id = total_tasks
+        task_name2 = str(task_id)
+        filename = self.transformed_dataset_file if rnd_transform else self.raw_dataset_file
+        return os.path.join(self.dataset_root, self.tasks_subdir, task_name2, filename)
+
+    def get_taskname(self, task_index):
+        return str(task_index)
+
+
+class RetinalFundusDataset(CustomDataset):
+    name = 'Retinal Fundus'
+    argname = 'retina'
+    test_results_dir = 'retina'
+    train_exp_results_dir = 'retina'
+    def_task_count, task_count = 5, 5
+    classes_per_task = OrderedDict()
+    input_size = (256, 256)
+
+    def __init__(self, crop=False, create=True, task_count=5, dataset_root=None, overwrite=False, balanced=True, num_class=5):
+        config = utils.get_parsed_config()
+
+        self.dataset_root = dataset_root if dataset_root else os.path.join(
+            utils.read_from_config(config, 'ds_root_path'), 'retina', 'retina_preprocessed')
+        print("Dataset root = {}".format(self.dataset_root))
+        self.crop = crop
+        self.task_count = task_count
+
+        self.transformed_dataset_file = 'imgfolder_trainvaltest_rndtrans.pth.tar'
+        self.raw_dataset_file = 'imgfolder_trainvaltest.pth.tar'
+        self.joint_dataset_file = 'imgfolder_trainvaltest_joint.pth.tar'
+
+        if create:
+            dataprep_retina.download_dset(os.path.dirname(self.dataset_root))
+            dataprep_retina.prepare_dataset(self, self.dataset_root, task_count=self.task_count, survey_order=True,
+                                          overwrite=overwrite, num_class=num_class)
         # Dataset with bare 64x64, no 56x56 crop
         if not crop:
             self.dataset_root = os.path.join(self.dataset_root, 'no_crop')
