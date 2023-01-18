@@ -944,7 +944,6 @@ class EBLL(Method):
                 # autoencoder trained on the previous task dataset
                 start_time = time.time()
                 encoder_dim = int(encoder_dim)
-                print('hyper parameter', self.static_hyperparams['autoencoder_epochs'])
                 self.static_hyperparams['autoencoder_epochs'] = int(self.static_hyperparams['autoencoder_epochs'])
                 _, acc = trainEBLL.fine_tune_Adam_Autoencoder(dataset_path=args.previous_task_dataset_path,
                                                               previous_task_model_path=manager.previous_task_model_path,

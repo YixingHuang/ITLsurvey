@@ -286,7 +286,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train' and epoch > 0:
+            if phase == 'train':
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     termination_protocol(since, best_acc)
@@ -304,18 +304,18 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
                 start_preprocess_time = time.time()
                 # get the inputs
                 inputs, labels = data
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     original_inputs = inputs.clone()
 
                 # wrap them in Variable
                 if use_gpu:
-                    if phase == 'train' and epoch > 0:
+                    if phase == 'train':
                         original_inputs = original_inputs.cuda()
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs.cuda()), \
                                      Variable(labels.cuda())
                 else:
-                    if phase == 'train' and epoch > 0:
+                    if phase == 'train':
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs), Variable(labels)
 

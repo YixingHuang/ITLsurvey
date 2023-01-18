@@ -31,10 +31,10 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "Adam_200Classes"
+gridsearch_name = "Adam_10Classes_batch5"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-methods = [FineTuning(), SI(), IMM('mean'), MAS()]
+methods = [SI(), EWC(), EBLL()]
 # methods = [FineTuning(), SI()]
 for method in methods:
     # method = SI()

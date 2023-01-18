@@ -47,15 +47,18 @@ method_data_entries = []
 # gridsearch_names = ['Adam_unbalancedDataAmountMidLastEpoch', 'Adam_unbalancedDataAmountMidLastEpoch_repeat2', 'Adam_unbalancedDataAmountMidLastEpoch_repeat3', 'Adam_unbalancedDataAmountMidLastEpoch_repeat4', 'Adam_unbalancedDataAmountMidLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpoch', 'Adam_unbalancedDataAmountLastEpoch_repeat2', 'Adam_unbalancedDataAmountLastEpoch_repeat3', 'Adam_unbalancedDataAmountLastEpoch_repeat4', 'Adam_unbalancedDataAmountLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpochE100', 'Adam_unbalancedDataAmountLastEpochE100_repeat2', 'Adam_unbalancedDataAmountLastEpochE100_repeat3', 'Adam_unbalancedDataAmountLastEpochE100_repeat4', 'Adam_unbalancedDataAmountLastEpochE100_repeat5']
-gridsearch_names = ['Adam_10Classes']
+gridsearch_names = ['Adam_10Classes_batch5']
 
 #############################################
-methods = [Joint(), SI()]
+methods = [Joint(), SI(), EWC(), LWF(), EBLL()]
 # for method in methods:
 for gridsearch_name in gridsearch_names:
-    method = Joint()
+    method = EBLL()
+    # method = MAS()
+    # method = LWF()
+    # method = Joint()
     # method = FineTuning()
-    # method_names.append(method.name)
+    method_names.append(method.name)
     label = None
 
     tuning_selection = []
