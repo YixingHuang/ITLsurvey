@@ -80,6 +80,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, min_num=50, 
         raise NotImplementedError('num_class should be either 2 or 5!')
     class_to_idx = {classes[i]: i for i in range(len(classes))}
 
+    patient2class = getPatient2Class(os.path.join(root_path, 'trainLabels.csv'))
     subsets = ['train', 'val']
     img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
     folders = [f for f in os.listdir(root_path) if os.path.isdir(f)]
@@ -89,27 +90,35 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, min_num=50, 
 
     folder_id = 0
     for center_id in range(1, center_count + 1):
+        if len(img_paths[center_id]['classes']) == 0:
+            img_paths[center_id]['classes'].extend(classes)
+        img_paths[center_id]['class_to_idx'] = class_to_idx
+
         num_files = 0
-        while num_files < 50: #make sure more than 50 images in the folder
+        while num_files > min_num: #make sure more than 50 images in the folder
             center_path = os.path.join(root_path, folders[folder_id])
             allfiles = os.listdir(center_path)
             allfiles = [f for f in allfiles if os.path.isfile(os.path.join(center_path, f))] ## make sure they are all image files
             num_files = len(allfiles)
             folder_id = folder_id + 1
-
+        if num_files > max_num: #use max_num files only
+            num_files = max_num
+        num_train = int(num_files * 0.8)
         for subset in subsets:
-            # Make subset dataset dir for each center
-        for initial_image_id in (range(0, num_images, nb_images_per_center)):
-            if len(img_paths[center_id]['classes']) == 0:
-                img_paths[center_id]['classes'].extend(classes)
-            img_paths[center_id]['class_to_idx'] = class_to_idx
-            for class_index in range(0, len(classes)):
-                target = classes[class_index]
-                src_path = os.path.join(root_path, subset, target, 'images')
-                allfiles = os.listdir(src_path)
-                imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in allfiles[initial_image_id: initial_image_id + nb_images_per_center]
-                        if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
-                img_paths[center_id][subset].extend(imgs)
+            if subset == 'train':
+                initial_image_id = 0
+                num_imgs = num_train
+            else:
+                initial_image_id = num_train
+                num_imgs = num_files - num_train
+            imgs = []
+            for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
+                patientName = f[0:-5]
+                original_class = patient2class.get(patientName)
+                isinclude, new_class = isIncluded(original_class=original_class, num_class=num_classes)
+                if isinclude:
+                   imgs.append((os.path.join(center_path, f), new_class))
+            img_paths[center_id][subset].extend(imgs)
 
     return img_paths
 
