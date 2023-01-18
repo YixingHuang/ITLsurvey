@@ -1,6 +1,22 @@
+"""
+Download the diabetic retinopathy detection dataset manually from Kaggle:
+https://www.kaggle.com/competitions/diabetic-retinopathy-detection/data
+
+Please use this file to preprocess the data: resampling and crop into 256 * 256 images,
+and put them into different folders according to their image sizes.
+Different image sizes indicate different camera devices and hence can be assumed from different centers.
+
+Please put all the images in the "train" folder before running this script.
+The processed images will be saved in the "processed" folder with subdirectories named after image sizes.
+
+"""
+
+
 import csv
 import cv2
 import os
+
+
 csv_file = open('C:/Data/RetinalData/trainLabels.csv', 'r')
 csv_reader = csv.reader(csv_file, delimiter=',')
 line_count = 0
@@ -30,7 +46,7 @@ for row in csv_reader:
     ry = new_size/szs[1]
     if ry > rx: #Zoom in accordint to the smaller size
         rx = ry
-    img_size2 = (int(szs[1] * rx), int(szs[0] * rx))
+    img_size2 = (int(szs[1] * rx), int(szs[0] * rx)) #note that numpy array and images swap height and width.
 
     img2 = cv2.resize(img, dsize=img_size2, interpolation=cv2.INTER_AREA)
     if img_size2[0] > new_size:
@@ -40,7 +56,7 @@ for row in csv_reader:
         half = int((img_size2[1] - new_size) / 2)
         img2 = img2[half: half + int(new_size), :]
     cv2.imwrite(save_name, img2)
-    if line_count < 20:
+    if line_count < 20: #print out some exemplary cases for check
         print(patient_name, disease_type, szs, camera_size_name)
 
 print('Process done!')
