@@ -14,7 +14,7 @@ for row in csv_reader:
         continue
     patient_name = row[0]
     disease_type = int(row[1])
-    if disease_type == 1:
+    if not (disease_type == 1):
         continue
 
     img_name = input_folder + patient_name + suffix
@@ -42,3 +42,5 @@ for row in csv_reader:
     cv2.imwrite(save_name, img2)
     if line_count < 20:
         print(patient_name, disease_type, szs, camera_size_name)
+
+print('Process done!')
