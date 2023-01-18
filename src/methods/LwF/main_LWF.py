@@ -149,7 +149,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train' and epoch > 0:
+            if phase == 'train':
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)
@@ -168,12 +168,12 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 # get the inputs
                 inputs, labels = data
                 # ==========
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     original_inputs = inputs.clone()
 
                 # wrap them in Variable
                 if use_gpu:
-                    if phase == 'train' and epoch > 0:
+                    if phase == 'train':
                         original_inputs = original_inputs.cuda()
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs.cuda()), \
@@ -202,7 +202,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 # Compute distillation loss.
                 dist_loss = 0
                 # Apply distillation loss to all old tasks.
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     for idx in range(len(target_logits)):
                         dist_loss += distillation_loss(tasks_outputs[idx], target_logits[idx], temperature, scale[idx])
                     # backward + optimize only if in training phase
@@ -210,7 +210,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                 total_loss = reg_lambda * dist_loss + task_loss
                 preprocessing_time += time.time() - start_preprocess_time
 
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     total_loss.backward()
                     optimizer.step()
 

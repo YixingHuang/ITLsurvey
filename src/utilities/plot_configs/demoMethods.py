@@ -34,7 +34,7 @@ method_data_entries = []
 gridsearch_name = "Adam_10Classes_batch5"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-methods = [SI(), EWC(), EBLL()]
+methods = [Joint(), SI(), EWC(), EBLL(), MAS()]
 # methods = [FineTuning(), SI()]
 for method in methods:
     # method = SI()
