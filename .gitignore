@@ -12,3 +12,6 @@ src/methods/MAS/__pycache__/
 src/framework/__pycache__/
 src/data/models/
 src/framework/__pycache__/eval.cpython-37.pyc
+src/runTinyScriptsWin/
+src/runTinyScripts/
+src/runRetinaScriptsWin/
