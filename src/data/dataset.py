@@ -31,7 +31,8 @@ def parse(ds_name, ntasks, balanced=True, num_class=10):
 
     elif ds_name == LongTinyImgnetDataset.argname:  # Supplemental
         return LongTinyImgnetDataset()
-
+    elif ds_name == RetinalFundusDataset.argname:  # Supplemental
+        return RetinalFundusDataset(task_count=ntasks, balanced=balanced, num_class=num_class)
     else:
         raise NotImplementedError("Dataset not parseable: ", ds_name)
 
