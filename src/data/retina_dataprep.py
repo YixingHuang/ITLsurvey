@@ -120,7 +120,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
                 if not os.path.exists(subfolder):
                     continue
                 allfiles_sub = os.listdir(subfolder)
-                allfiles_sub = [f for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
+                allfiles_sub = [os.path.join(subfolder, f) for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
                 if category == 0:
                     healthy_files.extend(allfiles_sub)
                 else:
@@ -133,6 +133,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
             diseased_files = random.sample(diseased_files, total_diseased)
             allfiles = healthy_files + diseased_files
             num_files = len(allfiles)
+            allfiles = random.sample(allfiles, num_files)
             folder_id = folder_id + 1
         print('Folder ' + folders[folder_id] + ' is selected!')
         num_train = int(num_files * 0.8)
@@ -145,11 +146,11 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
                 num_imgs = num_files - num_train
             imgs = []
             for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
-                patientName = f[0:-5]
+                patientName = os.path.basename(f)[0:-5]
                 original_class = patient2class.get(patientName)
                 isinclude, new_class = isIncluded(original_class=original_class, num_class=num_classes)
                 if isinclude:
-                   imgs.append((os.path.join(center_path, f), new_class))
+                   imgs.append((f, new_class))
             if isJoint:
                 img_paths[1][subset].extend(imgs)
             else:
@@ -430,7 +431,7 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if not os.path.isfile(os.path.join(target_path, "DIV.TOKEN")) or overwrite:
         print("PREPARING DATASET: DIVIDING INTO {} TASKS".format(task_count))
 
-        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=50, max_num=200)
+        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=100, max_num=400)
 
         torch.save({}, os.path.join(target_path, 'DIV.TOKEN'))
     else:
@@ -449,8 +450,8 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if joint:
         if not os.path.isfile(os.path.join(target_path, "IMGFOLDER_JOINT.TOKEN")) or overwrite:
             print("PREPARING JOINT DATASET: IMAGEFOLDER GENERATION")
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=50,
-                                            max_num=200, isJoint=True)
+            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=100,
+                                            max_num=400, isJoint=True)
             # Create joint
             create_train_val_test_imagefolder_dict_joint(target_path, img_paths, dset.joint_dataset_file, no_crop=True)
             torch.save({}, os.path.join(target_path, 'IMGFOLDER_JOINT.TOKEN'))
