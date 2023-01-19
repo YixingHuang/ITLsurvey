@@ -11,6 +11,7 @@ import torch
 import shutil
 import subprocess
 import csv
+import random
 from torchvision import transforms
 
 import utilities.utils as utils
@@ -105,15 +106,35 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
 
         num_files = 0
         allfiles = []
-        while num_files < min_num: #make sure more than 50 images in the folder
+        while num_files < 2 * min_num:
             center_path = os.path.join(root_path, folders[folder_id])
-            print('HYX0', folder_id, folders[folder_id], center_path)
-            allfiles = os.listdir(center_path)
-            allfiles = [f for f in allfiles if os.path.isfile(os.path.join(center_path, f))] ## make sure they are all image files
+            num_per_class, total_diseased = getFileNumbers(center_path)
+            if total_diseased < min_num:
+                folder_id = folder_id + 1
+                continue
+
+            healthy_files = []
+            diseased_files = []
+            for category in range(0, 5):
+                subfolder = os.path.join(center_path, str(category))
+                if not os.path.exists(subfolder):
+                    continue
+                allfiles_sub = os.listdir(subfolder)
+                allfiles_sub = [f for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
+                if category == 0:
+                    healthy_files.extend(allfiles_sub)
+                else:
+                    diseased_files.extend(allfiles_sub)
+            num_class_0 = num_per_class[0] if num_per_class[0] < total_diseased else total_diseased
+            num_class_0 = max_num if num_class_0 > max_num else num_class_0
+            total_diseased = max_num if total_diseased > max_num else total_diseased
+            random.seed(0)
+            healthy_files = random.sample(healthy_files, num_class_0)
+            diseased_files = random.sample(diseased_files, total_diseased)
+            allfiles = healthy_files + diseased_files
             num_files = len(allfiles)
             folder_id = folder_id + 1
-        if num_files > max_num: #use max_num files only
-            num_files = max_num
+        print('Folder ' + folders[folder_id] + ' is selected!')
         num_train = int(num_files * 0.8)
         for subset in subsets:
             if subset == 'train':
@@ -123,7 +144,6 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
                 initial_image_id = num_train
                 num_imgs = num_files - num_train
             imgs = []
-            print('HYX', subset, initial_image_id, num_imgs)
             for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
                 patientName = f[0:-5]
                 original_class = patient2class.get(patientName)
@@ -136,6 +156,19 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
                 img_paths[center_id][subset].extend(imgs)
 
     return img_paths
+
+
+def getFileNumbers(mainPath):
+    num_per_class = [0, 0, 0, 0, 0] #initialization number
+    for category in range(0, 5):
+        subfolder = os.path.join(mainPath, str(category))
+        if not os.path.exists(subfolder):
+            continue
+        allfiles = os.listdir(subfolder)
+        allfiles = [f for f in allfiles if os.path.isfile(os.path.join(subfolder, f))]
+        num_per_class[category] = len(allfiles)
+    total_diseased = sum(num_per_class[1:])
+    return num_per_class, total_diseased
 
 def isIncluded(original_class, num_class):
     if num_class == 2 and original_class == 1:

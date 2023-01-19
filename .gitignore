@@ -14,4 +14,10 @@ src/data/models/
 src/framework/__pycache__/eval.cpython-37.pyc
 src/runTinyScriptsWin/
 src/runTinyScripts/
+<<<<<<< Updated upstream
 src/runRetinaScriptsWin/
+=======
+src/runRetinaScriptsWin/
+src/runTinyScriptsWin/runCMDs_10Classes.py
+src/runTinyScriptsWin/runCMDs_10Classes.py
+>>>>>>> Stashed changes
