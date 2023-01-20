@@ -24,7 +24,7 @@ parser.add_argument('--unbalanced_data', action="store_true",
                     help="unbalanced class distribution over centers")
 parser.add_argument('--n_tasks', type=int, default=5, help='the total number of tasks/centers')
 parser.add_argument('--n_iters', type=int, default=5, help='the total number of iterations of weight transfer')
-parser.add_argument('--num_class', type=int, default=10, help='the total number of classes used for split')
+
 # PATHS
 parser.add_argument('--gridsearch_name', type=str, default="demo",
                     help="root/<gridsearch_name>/<exp_name>/ grouping experiments.")
@@ -55,7 +55,7 @@ parser.add_argument('--optimizer', type=int, default=1,
                     help="choice for optimizers, 0 for SGD; 1 for Adam")
 parser.add_argument('--renew_optimizer', action="store_true",
                     help="Renew instead of reload previous optimizers in the sequential training for later tasks/centers")
-# parser.add_argument('--num_classes', type=int, default=10, help="the number of classes in the datasets")
+parser.add_argument('--num_class', type=int, default=10, help='the total number of classes used for split')
 
 
 # Special Run Modes
@@ -141,9 +141,10 @@ def main(method=None, dataset=None):
             dataset = datasets.parse(args.ds_name, args.n_tasks, True, num_class=args.num_class)
 
     num_classes = len(dataset.classes_per_task['1']) # each center has the same number of classes
+    assert num_classes == args.num_class, "the number of classes in the dataset should be equal to that from args"
     print('HYX number of classes is ', num_classes)
     # Model wrapper init
-    base_model = nets.parse_model_name(args.models_root_path, args.model_name, dataset.input_size, num_classes)
+    base_model = nets.parse_model_name(args.models_root_path, args.model_name, dataset.input_size, args.num_class)
     print("RUNNING MODEL: ", base_model.name)
     init_checks(args, dataset)  # CHECKS
 
