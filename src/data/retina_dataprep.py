@@ -129,7 +129,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
             num_class_0 = max_num if num_class_0 > max_num else num_class_0
             total_diseased = max_num if total_diseased > max_num else total_diseased
             random.seed(0)
-            healthy_files = random.sample(healthy_files, num_class_0)
+            healthy_files = random.sample(healthy_files, int(num_class_0/2))
             diseased_files = random.sample(diseased_files, total_diseased)
             allfiles = healthy_files + diseased_files
             num_files = len(allfiles)
@@ -431,7 +431,7 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if not os.path.isfile(os.path.join(target_path, "DIV.TOKEN")) or overwrite:
         print("PREPARING DATASET: DIVIDING INTO {} TASKS".format(task_count))
 
-        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=100, max_num=400)
+        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=200, max_num=1000)
 
         torch.save({}, os.path.join(target_path, 'DIV.TOKEN'))
     else:
@@ -450,8 +450,8 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if joint:
         if not os.path.isfile(os.path.join(target_path, "IMGFOLDER_JOINT.TOKEN")) or overwrite:
             print("PREPARING JOINT DATASET: IMAGEFOLDER GENERATION")
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=100,
-                                            max_num=400, isJoint=True)
+            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=200,
+                                            max_num=1000, isJoint=True)
             # Create joint
             create_train_val_test_imagefolder_dict_joint(target_path, img_paths, dset.joint_dataset_file, no_crop=True)
             torch.save({}, os.path.join(target_path, 'IMGFOLDER_JOINT.TOKEN'))

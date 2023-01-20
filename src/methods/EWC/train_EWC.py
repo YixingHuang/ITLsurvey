@@ -319,7 +319,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 # get the inputs
                 inputs, labels = data
                 # FOR MNIST DATASET
-                inputs = inputs.squeeze()
+                # inputs = inputs.squeeze()
 
                 # wrap them in Variable
                 if use_gpu:

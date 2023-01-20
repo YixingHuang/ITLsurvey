@@ -539,7 +539,7 @@ def adamOriginal(
 def set_lr(optimizer, lr, count):
     """Decay learning rate by a factor of 0.5 every lr_decay_epoch epochs."""
     continue_training = True
-    if count >= 10:
+    if count >= 40:
         continue_training = False
         print("training terminated")
     if count == 11:
@@ -607,7 +607,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train' and epoch > 0:
+            if phase == 'train':
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)
@@ -640,7 +640,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     loss.backward()
                     # print('step')
                     optimizer.step(model.reg_params)

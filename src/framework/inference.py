@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 
 def test_model(method, model, dataset_path, target_task_head_idx, target_head=None, batch_size=200, subset='test',
-               per_class_stats=False, final_layer_idx=None, task_idx=None):
+               per_class_stats=True, final_layer_idx=None, task_idx=None):
     """
     :param target_task_head_idx: for EBLL,LWF which have all heads in model itself
     :param target_head: Actual head in list, so idx should be 0
@@ -53,7 +53,7 @@ def test_model(method, model, dataset_path, target_task_head_idx, target_head=No
         batch_count += 1
         images, labels = data
         images = images.cuda()
-        images = images.squeeze()
+        # images = images.squeeze() #cause problems when certain batchs have only one image
         labels = labels.cuda()
 
         # GET OUTPUT
@@ -137,7 +137,7 @@ def test_task_joint_model(model_path, dataset_path, task_idx, task_lengths, batc
     for data in dset_loaders[subset]:
         images, labels = data
         images = images.cuda()
-        images = images.squeeze()
+        # images = images.squeeze() #cause problems when some batchs have only one image
         labels = labels.cuda()
         outputs = model(Variable(images))
 

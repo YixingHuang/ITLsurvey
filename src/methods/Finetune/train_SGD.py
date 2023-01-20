@@ -109,7 +109,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 data_time.update(time.time() - end)
 
                 # get the inputs
-                inputs = inputs.squeeze()
+                # inputs = inputs.squeeze() #HYX cause dimension problems if batch has only one image
                 if use_gpu:
                     inputs = inputs.cuda(non_blocking=True)
                     labels = labels.cuda(non_blocking=True)

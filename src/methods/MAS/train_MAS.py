@@ -475,7 +475,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 # get the inputs
                 inputs, labels = data
                 # FOR MNIST DATASET
-                inputs = inputs.squeeze()
+                # inputs = inputs.squeeze() #HYX dimension problem is a batch has only one image
 
                 # wrap them in Variable
                 if use_gpu:
@@ -609,7 +609,7 @@ def train_model_sparce(model, criterion, optimizer, lr_scheduler, lr, dset_loade
             for data in dset_loaders[phase]:
                 # get the inputs
                 inputs, labels = data
-                inputs = inputs.squeeze()
+                # inputs = inputs.squeeze() #HYX  cause dimension problem if one batch has only one image
                 # wrap them in Variable
                 if use_gpu:
                     inputs, labels = Variable(inputs.cuda()), \
