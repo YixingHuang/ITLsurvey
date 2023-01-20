@@ -172,7 +172,8 @@ def diag_fisher(model, dataset, exclude_params=None):
             output = model(x)
             temp = F.softmax(output).data
 
-            targets = Variable(torch.multinomial(temp, 1).clone().squeeze()).cuda()
+            targets = Variable(torch.multinomial(temp, 1).clone().squeeze(dim=1)).cuda()
+            print('HYX', output.size(), targets.size())
             loss = F.nll_loss(F.log_softmax(output, dim=1), targets, size_average=True)
             loss.backward()
 
