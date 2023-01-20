@@ -146,7 +146,7 @@ class VGGModel(Model):
         self.final_featmap_count = VGGcreator.cfg[vgg_config][-2]
         parent_path = os.path.join(models_root_path,
                                    "customVGG_input={}x{}".format(str(input_size[0]), str(input_size[1])))
-        self.path = os.path.join(parent_path, self.name + ".pth.tar")
+        self.path = os.path.join(parent_path, self.name + "_" + str(num_classes) + ".pth.tar")
 
         # After classifier name
         dropout = ModelRegularization.dropout in model_name.split("_")
