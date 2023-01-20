@@ -170,7 +170,8 @@ class VGGModel(Model):
                 print("CREATED MODEL:")
                 print(view_saved_model(self.path))
             else:
-                raise Exception("Not creating non-existing model: ", self.name)
+                # raise Exception("Not creating non-existing model: ", self.name)
+                print("Not creating non-existing model: ", self.name)
         else:
             print("MODEL ", model_name, " already exist in path = ", self.path)
 
