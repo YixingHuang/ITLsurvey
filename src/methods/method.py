@@ -29,7 +29,7 @@ import methods.HAT.run as trainHAT
 import methods.IMM.main_L2transfer as trainIMM
 import methods.IMM.merge as mergeIMM
 import methods.Finetune.main_SGD as trainFT
-
+import shutil
 
 # PARSING
 def parse(method_name):
