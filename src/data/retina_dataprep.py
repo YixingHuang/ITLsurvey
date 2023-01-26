@@ -76,7 +76,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
     if num_classes == 5:
         classes = ('absent', 'mild', 'moderate', 'severe', 'proliferative retinopathy')
     elif num_classes == 2:
-        classes = ('healthy', 'diseased')
+        classes = ('absent', 'DR')
     else:
         raise NotImplementedError('num_class should be either 2 or 5!')
     class_to_idx = {classes[i]: i for i in range(len(classes))}
@@ -129,7 +129,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
             num_class_0 = max_num if num_class_0 > max_num else num_class_0
             total_diseased = max_num if total_diseased > max_num else total_diseased
             random.seed(0)
-            healthy_files = random.sample(healthy_files, int(num_class_0/2))
+            healthy_files = random.sample(healthy_files, int(num_class_0/2.0))
             diseased_files = random.sample(diseased_files, total_diseased)
             allfiles = healthy_files + diseased_files
             num_files = len(allfiles)
@@ -172,10 +172,11 @@ def getFileNumbers(mainPath):
     return num_per_class, total_diseased
 
 def isIncluded(original_class, num_class):
-    if num_class == 2 and original_class == 1:
-        return False, original_class
-    elif num_class == 2:
-        new_class = 0 if original_class < 1 else 1
+    if num_class == 2:
+        if original_class == 1 or original_class == 2:
+            return False, original_class
+        else:
+            new_class = 0 if original_class < 1 else 1
         return True, new_class
     else:
         return True, original_class

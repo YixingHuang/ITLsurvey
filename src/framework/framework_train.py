@@ -76,10 +76,12 @@ class HyperparameterFramework(object):
 
     def getCurrentLearningRate(self, args):
         task_counter = args.task_counter
-
-        n_epochs_done = (task_counter - 1) * args.num_epochs
-        x = math.floor(n_epochs_done/10)
-        current_lr = args.fixed_init_lr * (0.8 ** x)
+        if args.optimizer == 0:
+            n_epochs_done = (task_counter - 1) * args.num_epochs
+            x = math.floor(n_epochs_done/10)
+            current_lr = args.fixed_init_lr * (0.8 ** x)
+        else:
+            current_lr = args.fixed_init_lr
         if current_lr < 1.0e-5:
             current_lr = 1.0e-5
 

@@ -29,7 +29,7 @@ def fine_tune_elastic(dataset_path, model_path, exp_dir, batch_size=200, num_epo
 
     dsets = torch.load(dataset_path)
     dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=batch_size,
-                                                   shuffle=True, num_workers=8, pin_memory=True)
+                                                   shuffle=True, num_workers=8, pin_memory=True, drop_last=True)
                     for x in ['train', 'val']}
     dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
     dset_classes = dsets['train'].classes

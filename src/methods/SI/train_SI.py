@@ -539,7 +539,7 @@ def adamOriginal(
 def set_lr(optimizer, lr, count):
     """Decay learning rate by a factor of 0.5 every lr_decay_epoch epochs."""
     continue_training = True
-    if count >= 40:
+    if count >= 20:
         continue_training = False
         print("training terminated")
     if count == 11:
@@ -679,7 +679,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                     del preds
                     best_acc = epoch_acc
                     torch.save(model, os.path.join(exp_dir, 'best_model.pth.tar'))
-
+                    print('new best val model')
                     epoch_file_name = exp_dir + '/' + 'epoch' + '.pth.tar'
                     save_checkpoint({
                         'epoch_acc': epoch_acc,
