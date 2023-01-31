@@ -25,10 +25,10 @@ def test_model(method, model, dataset_path, target_task_head_idx, target_head=No
     dsets = torch.load(dataset_path)
 
     try:
-        dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size, shuffle=True, num_workers=4, drop_last=True)
+        dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size, shuffle=True, num_workers=4, drop_last=False)
                         for x in ['train', 'val', 'test']}
     except:
-        dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size, shuffle=True, num_workers=4, drop_last=True)
+        dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size, shuffle=True, num_workers=4, drop_last=False)
                         for x in ['train', 'val']}
         print('no test set has been found')
         subset = 'val'

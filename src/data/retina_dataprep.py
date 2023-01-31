@@ -62,7 +62,8 @@ def preprocess_val(root_path):
         utils.attempt_move(os.path.join(val_path, 'images', imagename), this_class_dir)
 
 
-def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, max_num=200, isJoint=False):
+#
+def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, max_num=200):
     """
     Divides total subset data into multi-centers (into dirs "task_x").
     center_count: number of centers
@@ -83,26 +84,20 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
 
     patient2class = getPatient2Class(os.path.join(root_path, 'trainLabels.csv'))
     subsets = ['train', 'val']
-    if isJoint:
-        img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, 2)}
-    else:
-        img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
+
+    img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
     folders = [f for f in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, f))]
     total_folders = len(folders)
     print('total number of folders/centers is ', total_folders)
     assert center_count <= total_folders, "center_count should be smaller than {}".format(total_folders)
 
     folder_id = 0
-    #
-    if len(img_paths[1]['classes']) == 0:
-        img_paths[1]['classes'].extend(classes)
-    img_paths[1]['class_to_idx'] = class_to_idx
 
     for center_id in range(1, center_count + 1):
-        if not isJoint and center_id > 1:
-            if len(img_paths[center_id]['classes']) == 0:
-                img_paths[center_id]['classes'].extend(classes)
-            img_paths[center_id]['class_to_idx'] = class_to_idx
+
+        if len(img_paths[center_id]['classes']) == 0:
+            img_paths[center_id]['classes'].extend(classes)
+        img_paths[center_id]['class_to_idx'] = class_to_idx
 
         num_files = 0
         allfiles = []
@@ -151,10 +146,8 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
                 isinclude, new_class = isIncluded(original_class=original_class, num_class=num_classes)
                 if isinclude:
                    imgs.append((f, new_class))
-            if isJoint:
-                img_paths[1][subset].extend(imgs)
-            else:
-                img_paths[center_id][subset].extend(imgs)
+
+            img_paths[center_id][subset].extend(imgs)
 
     return img_paths
 
@@ -451,8 +444,9 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if joint:
         if not os.path.isfile(os.path.join(target_path, "IMGFOLDER_JOINT.TOKEN")) or overwrite:
             print("PREPARING JOINT DATASET: IMAGEFOLDER GENERATION")
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=300,
-                                            max_num=2000, isJoint=True)
+            # img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=300,
+            #                                 max_num=2000, isJoint=True)
+            img_paths = utils.merge_individual_centers(img_paths, center_count=task_count)
             # Create joint
             create_train_val_test_imagefolder_dict_joint(target_path, img_paths, dset.joint_dataset_file, no_crop=True)
             torch.save({}, os.path.join(target_path, 'IMGFOLDER_JOINT.TOKEN'))
