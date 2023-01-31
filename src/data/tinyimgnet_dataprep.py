@@ -386,7 +386,8 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if joint:
         if not os.path.isfile(os.path.join(target_path, "IMGFOLDER_JOINT.TOKEN")) or overwrite:
             print("PREPARING JOINT DATASET: IMAGEFOLDER GENERATION")
-            img_paths = divide_into_centers(target_path, center_count=1)
+            # img_paths = divide_into_centers(target_path, center_count=1)
+            img_paths = merge_individual_centers(img_paths, center_count=task_count)
             # Create joint
             create_train_val_test_imagefolder_dict_joint(target_path, img_paths, dset.joint_dataset_file, no_crop=True)
             torch.save({}, os.path.join(target_path, 'IMGFOLDER_JOINT.TOKEN'))
@@ -394,3 +395,20 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
             print("Joint imgfolders already present.")
 
     print("PREPARED DATASET")
+
+
+def merge_individual_centers(img_paths_centers, center_count):
+    subsets = ['train', 'val']
+    img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, 2)}
+    for subset in subsets:
+        for center_id in range(1, center_count + 1):
+            if center_id == 1:
+                 img_paths[center_id][subset] = img_paths_centers[center_id][subset]
+            else:
+                 img_paths[1][subset].extend(img_paths_centers[center_id][subset])
+    if len(img_paths[1]['classes']) == 0:
+        img_paths[1]['classes'] = img_paths_centers[1]['classes']
+        img_paths[1]['class_to_idx'] = img_paths_centers[1]['class_to_idx']
+
+    return img_paths
+
