@@ -173,7 +173,7 @@ def getFileNumbers(mainPath):
 
 def isIncluded(original_class, num_class):
     if num_class == 2:
-        if original_class == 1 or original_class == 2:
+        if original_class == 1:
             return False, original_class
         else:
             new_class = 0 if original_class < 1 else 1
@@ -432,7 +432,7 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if not os.path.isfile(os.path.join(target_path, "DIV.TOKEN")) or overwrite:
         print("PREPARING DATASET: DIVIDING INTO {} TASKS".format(task_count))
 
-        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=200, max_num=1000)
+        img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=300, max_num=2000)
 
         torch.save({}, os.path.join(target_path, 'DIV.TOKEN'))
     else:
@@ -451,8 +451,8 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if joint:
         if not os.path.isfile(os.path.join(target_path, "IMGFOLDER_JOINT.TOKEN")) or overwrite:
             print("PREPARING JOINT DATASET: IMAGEFOLDER GENERATION")
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=200,
-                                            max_num=1000, isJoint=True)
+            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, min_num=300,
+                                            max_num=2000, isJoint=True)
             # Create joint
             create_train_val_test_imagefolder_dict_joint(target_path, img_paths, dset.joint_dataset_file, no_crop=True)
             torch.save({}, os.path.join(target_path, 'IMGFOLDER_JOINT.TOKEN'))
