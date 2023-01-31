@@ -67,7 +67,7 @@ def preprocess_val(root_path):
         utils.attempt_move(os.path.join(val_path, 'images', imagename), this_class_dir)
 
 
-def divide_into_centers(root_path, center_count=10, num_classes=10):
+def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=True):
     """
     Divides total subset data into multi-centers (into dirs "task_x").
     :return:
@@ -93,6 +93,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10):
             # classes = lines[initial_class:initial_class + nb_images_per_center]
         classes = lines[0:num_classes]
         classes.sort()
+        print(classes)
         class_to_idx = {classes[i]: i for i in range(len(classes))}
         print("HYX", classes, class_to_idx)
             # Make subset dataset dir for each center
@@ -103,6 +104,9 @@ def divide_into_centers(root_path, center_count=10, num_classes=10):
             for class_index in range(0, len(classes)):
                 target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
+                if noisy and center_id == 3: #only the third center adds noise
+                    target2 = target + '_noisy'
+                    src_path = os.path.join(root_path, subset, target2, 'images')
                 allfiles = os.listdir(src_path)
                 imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in allfiles[initial_image_id: initial_image_id + nb_images_per_center]
                         if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
