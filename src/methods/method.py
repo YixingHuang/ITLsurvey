@@ -703,7 +703,7 @@ class SI(Method):
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
-    hyperparams = OrderedDict({'lambda': 10})
+    hyperparams = OrderedDict({'lambda': 400})
 
     # start_scratch = True  # Reference model other methods, should run in basemodel_dump mode
 
@@ -880,7 +880,7 @@ class IMM(Method):
         """ Merging step before evaluation. """
         print("IMM preprocessing: '{}' mode".format(self.mode))
         models_path = mergeIMM.preprocess_merge_IMM(self, args.models_path, args.datasets_path, args.batch_size,
-                                                    overwrite=True)
+                                                    overwrite=True, n_centers=args.n_tasks)
         return models_path
 
     @staticmethod
@@ -1111,10 +1111,12 @@ class Finetune(Method):
     def grid_poststep_symlink(args, manager):
         """ Create symbolic link to best model in gridsearch. """
         exp_dir = os.path.join(manager.parent_exp_dir, 'task_' + str(args.task_counter), 'TASK_TRAINING')
-        if os.path.exists(exp_dir):
-            os.unlink(exp_dir)
+        # if os.path.exists(exp_dir):
+        #     os.unlink(exp_dir)
         print("Symlink best LR: ", utilities.utils.get_relative_path(manager.best_exp_grid_node_dirname, segments=2))
-        os.symlink(utilities.utils.get_relative_path(manager.best_exp_grid_node_dirname, segments=2), exp_dir)
+        # os.symlink(utilities.utils.get_relative_path(manager.best_exp_grid_node_dirname, segments=2), exp_dir)
+        if not os.path.exists(exp_dir):
+            shutil.copytree(manager.best_exp_grid_node_dirname, exp_dir)
 
     @staticmethod
     def compose_dataset(dataset_path, batch_size, init_freeze=True):

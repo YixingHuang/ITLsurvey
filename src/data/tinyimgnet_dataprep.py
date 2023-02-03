@@ -95,7 +95,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=True):
         classes.sort()
         print(classes)
         class_to_idx = {classes[i]: i for i in range(len(classes))}
-        print("HYX", classes, class_to_idx)
+
             # Make subset dataset dir for each center
         for initial_image_id in (range(0, num_images, nb_images_per_center)):
             if len(img_paths[center_id]['classes']) == 0:
@@ -105,7 +105,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=True):
                 target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
                 if noisy and center_id == 3: #only the third center adds noise
-                    target2 = target + '_noisy'
+                    target2 = target + '_noisy_25'
                     src_path = os.path.join(root_path, subset, target2, 'images')
                 allfiles = os.listdir(src_path)
                 imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in allfiles[initial_image_id: initial_image_id + nb_images_per_center]

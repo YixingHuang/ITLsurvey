@@ -31,11 +31,13 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "Adam_10Classes_batch5"
+gridsearch_name = "Adam_10Classes_noisy25_ICL"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-methods = [Joint(), FineTuning(), SI(), EWC(), LWF(), EBLL(), MAS(), IMM('mean'), IMM('mode')]
-# methods = [FineTuning(), SI()]
+# methods = [Joint(), FineTuning(), SI(), EWC(), LWF(), EBLL(), MAS(), IMM('mean'), IMM('mode')]
+# methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), IMM('mean'), IMM('mode')]
+# methods = [SI(), EWC(), LWF(), MAS()]
+methods = [IMM('mean'), IMM('mode')]
 for method in methods:
     # method = SI()
     method_names.append(method.name)

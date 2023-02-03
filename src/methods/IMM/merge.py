@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import utilities.utils as utils
 
 
-def preprocess_merge_IMM(method, model_paths, datasets_path, batch_size, overwrite=False, debug=True):
+def preprocess_merge_IMM(method, model_paths, datasets_path, batch_size, overwrite=False, debug=True, n_centers=5):
     """
     Create and save all merged models.
     :param model_paths: list of chronologically all paths, of the models per trained task.
@@ -126,11 +126,13 @@ def preprocess_merge_IMM(method, model_paths, datasets_path, batch_size, overwri
 
         # Mean IMM
         if IMM_mode == method.modes[0]:
-            merged_model = IMM_merge_models(models, task_list_index, head_param_names, mean_mode=True)
+            merged_model = IMM_merge_models(models, task_list_index, head_param_names, mean_mode=True,
+                                            n_centers=n_centers)
         # Mode IMM
         elif IMM_mode == method.modes[1]:
             merged_model = IMM_merge_models(models, task_list_index, head_param_names, precision=precision_matrices,
-                                            sum_precision=sum_precision_matrices[task_list_index - 1], mean_mode=False)
+                                            sum_precision=sum_precision_matrices[task_list_index - 1], mean_mode=False,
+                                            n_centers=n_centers)
         else:
             raise ValueError("IMM mode is not supported: ", str(IMM_mode))
 
@@ -186,7 +188,7 @@ def diag_fisher(model, dataset, exclude_params=None):
     return precision_param
 
 
-def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, sum_precision=None, mean_mode=True):
+def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, sum_precision=None, mean_mode=True, n_centers=5):
     """
     Mean-IMM:, averaging all the parameters of the trained models up to the given task.
     Mode-IMM: dividing task precision matrix by sum of all task precision matrices
@@ -216,7 +218,10 @@ def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, su
 
         # Calculate Mean
         mean_param = torch.zeros(param_value.data.size()).cuda()
-        for merge_task_idx in range(0, total_task_count):  # Avg over all preceding + including current task
+
+        start_center_id = total_task_count - n_centers if total_task_count > n_centers else 0
+
+        for merge_task_idx in range(start_center_id, total_task_count):  # Avg over all preceding + including current task
 
             # Error check
             if models[merge_task_idx].state_dict()[param_name].size() != mean_param.size():
@@ -234,8 +239,9 @@ def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, su
                 mean_param += d_mean_param
 
         # Task_idx is count of how many iterated
+        num_total_task_count = n_centers if total_task_count > n_centers else total_task_count
         if mean_mode:
-            mean_param = mean_param / total_task_count  # Cancels out in mode IMM
+            mean_param = mean_param / num_total_task_count  # Cancels out in mode IMM
 
         # Update avged param
         param_value.data = mean_param.clone()

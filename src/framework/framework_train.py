@@ -202,6 +202,7 @@ class HyperparameterFramework(object):
                     etc.
         """
         op = manager.method.decay_operator if hasattr(manager.method, 'decay_operator') else operator.mul
+        #HYX: operator.mul -> operator.div for MC, increase the parameter instead of decreasing it to achieve better performance
 
         # Single hyperparam decay
         if len(self.hyperparams) == 1:
@@ -279,6 +280,9 @@ def framework_single_task(args, manager):
     args.classifier_heads_starting_idx = manager.base_model.last_layer_idx
     print("classifier_heads_starting_idx = ", args.classifier_heads_starting_idx)
 
+    center_id = (args.task_counter - 1) % args.n_tasks + 1
+    manager.method.hyperparams['lambda'] = args.hyperparams_seq[center_id - 1]
+
     if args.no_maximal_plasticity_search:
         print("/nPHASE 2 (TASK {})".format(args.task_counter))
         # HYX: get the learning with a smooth decaying schedule
@@ -298,7 +302,7 @@ def framework_single_task(args, manager):
         if manager.best_acc < ft_acc:
             manager.best_acc = ft_acc
         print("*" * 20, " FT LR ", ft_lr, "*" * 20)
-        hf.stabilityDecay(args, manager, ft_lr, manager.best_acc)  # HYX: the accuracy threshold is set to 0
+        hf.stabilityDecay(args, manager, ft_lr, manager.best_acc)
     elif not skip_to_post:
         ##############################################################################
         # PHASE 1
