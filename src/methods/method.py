@@ -232,7 +232,6 @@ class YourMethod(Method):
 def get_output_def(model, heads, images, current_head_idx, final_layer_idx):
     if len(images.size()) == 3:
         images = torch.unsqueeze(images, dim=0)
-        print('HYX', images.size())
     head = heads[current_head_idx]
     model.classifier._modules[final_layer_idx] = head  # Change head
     model.eval()
