@@ -702,7 +702,7 @@ class SI(Method):
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
-    hyperparams = OrderedDict({'lambda': 400})
+    hyperparams = OrderedDict({'lambda': 100})
 
     # start_scratch = True  # Reference model other methods, should run in basemodel_dump mode
 

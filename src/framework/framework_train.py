@@ -281,7 +281,9 @@ def framework_single_task(args, manager):
     print("classifier_heads_starting_idx = ", args.classifier_heads_starting_idx)
 
     center_id = (args.task_counter - 1) % args.n_tasks + 1
-    manager.method.hyperparams['lambda'] = args.hyperparams_seq[center_id - 1]
+    print('HYX', args.hyperparams_seq)
+    if args.hyperparams_seq is not None:
+        manager.method.hyperparams['lambda'] = args.hyperparams_seq[center_id - 1]
 
     if args.no_maximal_plasticity_search:
         print("/nPHASE 2 (TASK {})".format(args.task_counter))

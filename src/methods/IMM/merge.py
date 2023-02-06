@@ -107,7 +107,12 @@ def preprocess_merge_IMM(method, model_paths, datasets_path, batch_size, overwri
                     if debug:
                         for name, p in sum_precision_matrix.items():
                             print("{}: {} -> {}".format(name, p.shape, precision_matrix[name].shape))
-                    sum_precision_matrix = {name: p + precision_matrix[name]
+                    if task_list_index >= n_centers:
+                        sum_precision_matrix = {name: p + precision_matrix[name]
+                                                      - precision_matrices[task_list_index - n_centers][name]
+                                                for name, p in sum_precision_matrix.items()}
+                    else:
+                        sum_precision_matrix = {name: p + precision_matrix[name]
                                             for name, p in sum_precision_matrix.items()}
                     assert len([precision_matrix[name] != p for name, p in sum_precision_matrix.items()]) > 0
 

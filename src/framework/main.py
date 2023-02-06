@@ -80,8 +80,8 @@ parser.add_argument('--accuracy_improvement_search', action="store_true",
 # HYPERPARAMS
 parser.add_argument('--hyperparams', type=str, default="",
                     help="'param1,param2,...'  with 'def' giving default value. Order defined in methods/method.py")
-parser.add_argument('--hyperparams_seq', type=str, default="0.01,0.01,0.01,0.01,0.01",
-                    help="List of hyperparams for different centers (comma-separated)") #"0,0,400,0,0"
+parser.add_argument('--hyperparams_seq', type=str, default="",
+                    help="List of hyperparams for different centers (comma-separated), e.g., 0,0,400,0,0 ")
 parser.add_argument('--static_hyperparams', type=str, default="",
                     help="'p1,p2,...' Method hyperparams not included in the hyperparam decay set.")
 parser.add_argument('--lr_grid', type=str, default="1e-3",
