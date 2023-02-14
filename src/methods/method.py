@@ -702,7 +702,7 @@ class SI(Method):
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
-    hyperparams = OrderedDict({'lambda': 100})
+    hyperparams = OrderedDict({'lambda': 400})
 
     # start_scratch = True  # Reference model other methods, should run in basemodel_dump mode
 
@@ -735,7 +735,7 @@ class SI(Method):
     def decay_operator(a, decaying_factor):
         """ For lambda, we want it to increment instead of decay, with b >=1"""
         assert decaying_factor < 1
-        return a/decaying_factor
+        return a * decaying_factor
 
 # Fine tuning (FT) based on SI, but with lambda 0
 class FineTuning(Method):
@@ -796,7 +796,8 @@ class MAS(Method):
             lr=args.lr, norm='L2', b1=False,
             head_shared=args.init_freeze,
             saving_freq=args.saving_freq,
-            reload_optimizer=args.reload_optimizer
+            reload_optimizer=args.reload_optimizer,
+            optimizer=args.optimizer
         )
 
     def get_output(self, images, args):
@@ -815,7 +816,7 @@ class IMM(Method):
     extra_hyperparams_count = 1
     hyperparams = OrderedDict({'lambda': 0.01})
     grid_chkpt = True
-    no_framework = False  # Outlier method (see paper)
+    no_framework = True  # Outlier method (see paper)
 
     def __init__(self, mode='mode'):
         if mode not in self.modes:

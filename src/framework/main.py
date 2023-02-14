@@ -80,11 +80,11 @@ parser.add_argument('--accuracy_improvement_search', action="store_true",
 # HYPERPARAMS
 parser.add_argument('--hyperparams', type=str, default="",
                     help="'param1,param2,...'  with 'def' giving default value. Order defined in methods/method.py")
-parser.add_argument('--hyperparams_seq', type=str, default="",
+parser.add_argument('--hyperparams_seq', type=str, default=None,
                     help="List of hyperparams for different centers (comma-separated), e.g., 0,0,400,0,0 ")
 parser.add_argument('--static_hyperparams', type=str, default="",
                     help="'p1,p2,...' Method hyperparams not included in the hyperparam decay set.")
-parser.add_argument('--lr_grid', type=str, default="1e-3",
+parser.add_argument('--lr_grid', type=str, default="1e-2,5e-3,1e-3,5e-4,1e-4",
                     help="List of learning rates (comma-separated)") #"1e-2,5e-3,1e-3,5e-4,1e-4"
 parser.add_argument('--boot_lr_grid', type=str, default=None,
                     help="Learning rates list to bootstrap first task (comma-separated)")
@@ -94,7 +94,7 @@ parser.add_argument('--fixed_init_lr', type=float, default=0.001,
 parser.add_argument('--num_epochs', type=int, default=70, help="Epochs for both framework phases.")
 parser.add_argument('--num_epochs_initial_lr', type=int, default=25, help="Number of epochs with fixed initial learning rate.")
 parser.add_argument('--weight_decay', type=float, default=0)
-parser.add_argument('--batch_size', type=int, default=200)
+parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--seed', type=int, default=7, help="The seed for random initialization")
 parser.add_argument('--stochastic', action="store_true", help="Disable PyTorch deterministic property")
 
@@ -125,7 +125,8 @@ def main(method=None, dataset=None):
         args.reload_optimizer = False
     else:
         args.reload_optimizer = True
-    args.hyperparams_seq = utils.parse_str_to_floatlist(args.hyperparams_seq)
+    if args.hyperparams_seq is not None:
+        args.hyperparams_seq = utils.parse_str_to_floatlist(args.hyperparams_seq)
 
     utils.init(seed=args.seed, deterministic=args.deterministic)
     # ADD EXTERNAL PROJECT PATHS

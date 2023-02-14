@@ -78,7 +78,7 @@ class HyperparameterFramework(object):
         task_counter = args.task_counter
         if args.optimizer == 0:
             n_epochs_done = (task_counter - 1) * args.num_epochs
-            x = math.floor(n_epochs_done/10)
+            x = math.floor(n_epochs_done/5)
             current_lr = args.fixed_init_lr * (0.8 ** x)
         else:
             current_lr = args.fixed_init_lr

@@ -493,7 +493,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     loss.backward()
                     # print('step')
                     optimizer.step(model.reg_params)

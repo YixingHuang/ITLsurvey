@@ -601,7 +601,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
     warning_NAN_counter = 0
     print("START EPOCH = ", str(start_epoch))
-    for epoch in range(start_epoch, num_epochs + 2):
+    for epoch in range(start_epoch, num_epochs + 1):
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
@@ -684,7 +684,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                     save_checkpoint({
                         'epoch_acc': epoch_acc,
                         'best_acc': best_acc,
-                        'epoch': epoch + 1,
+                        'epoch': epoch,
                         'lr': lr,
                         'val_beat_counts': val_beat_counts,
                         'arch': 'alexnet',
@@ -702,7 +702,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
                     save_checkpoint({
                         'epoch_acc': epoch_acc,
                         'best_acc': best_acc,
-                        'epoch': epoch + 1,
+                        'epoch': epoch,
                         'lr': lr,
                         'val_beat_counts': val_beat_counts,
                         'arch': 'alexnet',
