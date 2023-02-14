@@ -71,7 +71,8 @@ def parse(method_name):
         return Joint()
     elif method_name == FineTuning.name:
         return FineTuning()
-
+    elif method_name == IsolatedTraining.name:
+        return IsolatedTraining()
     # Modes
     elif IMM.name in method_name:  # modeIMM,meanIMM
         mode = method_name.replace('_', '').replace(IMM.name, '').strip()
@@ -756,6 +757,40 @@ class FineTuning(Method):
                                          num_epochs=args.num_epochs,
                                          exp_dir=manager.heuristic_exp_dir,
                                          model_path=manager.previous_task_model_path,
+                                         reg_lambda=0,
+                                         batch_size=args.batch_size, lr=args.lr, init_freeze=args.init_freeze,
+                                         weight_decay=args.weight_decay,
+                                         saving_freq=args.saving_freq,
+                                         optimizer=args.optimizer,
+                                         reload_optimizer=args.reload_optimizer)
+
+    def get_output(self, images, args):
+        return get_output_def(args.model, args.heads, images, args.current_head_idx, args.final_layer_idx)
+
+    @staticmethod
+    def inference_eval(args, manager):
+        return Finetune.inference_eval(args, manager)
+
+
+# Fine tuning (FT) based on SI, but with lambda 0
+class IsolatedTraining(Method):
+    name = "Isolate"
+    eval_name = name
+    category = Category.MODEL_BASED
+    extra_hyperparams_count = 1
+    hyperparams = OrderedDict({'lambda': 0})
+
+    # start_scratch = True  # Reference model other methods, should run in basemodel_dump mode
+
+    @staticmethod
+    def grid_train(args, manager, lr):
+        return Finetune.grid_train(args, manager, lr)
+
+    def train(self, args, manager, hyperparams):
+        return trainSI.fine_tune_elastic(dataset_path=manager.current_task_dataset_path,
+                                         num_epochs=args.num_epochs,
+                                         exp_dir=manager.heuristic_exp_dir,
+                                         model_path=manager.base_model.path,
                                          reg_lambda=0,
                                          batch_size=args.batch_size, lr=args.lr, init_freeze=args.init_freeze,
                                          weight_decay=args.weight_decay,

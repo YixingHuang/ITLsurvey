@@ -21,9 +21,10 @@ cmd8 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name base_tr
 
 cmd9 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name base_training --method_name  EBLL  --ds_name tiny   --test  --test_overwrite_mode --num_epochs 50 --n_iters 1  --first_task_basemodel_folder first_task_base_training    --optimizer 0  --fixed_init_lr 0.001 --num_class 10 --multi_head --renew_optimizer --static_hyperparams 0.01,0.001;50;1e-1,1e-2;100,300'
 
+cmd10 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name base_training --method_name  Isolate  --ds_name tiny   --test  --test_overwrite_mode --num_epochs 50 --n_iters 1  --first_task_basemodel_folder first_task_base_training    --optimizer 0  --fixed_init_lr 0.001 --num_class 10 --multi_head --renew_optimizer'
 
 # cmds = [cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8, cmd9]
-cmds = [cmd8]
+cmds = [cmd10]
 for cmd in cmds:
     os.system(cmd)
 
