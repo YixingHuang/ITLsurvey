@@ -51,7 +51,6 @@ def analyze_experiments_icl(experiment_data_entries, hyperparams_selection=None,
                                                                                     hyperparams_selection, taskcount, n_iters)
     # Pad entries
     pad_dataframe(experiment_data_entries, hyperparams_counts)
-
     # Plot
     if save_img_parent_dir is not None:
         filename_template = save_img_parent_dir + "_TASK{}." + img_extention
@@ -138,7 +137,8 @@ class ExperimentDataEntry(object):
             return cmap(step * 4)
         elif method.name == FineTuning.name:
             return 'black'
-
+        elif method.name == IsolatedTraining.name:
+            return cmap(step * 4)
         # Rehearsal
         elif method.name == GEM.name:
             return cmap(step * 0)
@@ -392,6 +392,7 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
 
         # single perf file
         joint_full_batch = True if exp_data_entry.method.name == Joint.name else False
+        IT_full_batch = True if exp_data_entry.method.name == IsolatedTraining.name else False
 
         # seq perf files
         for dataset_index in range(taskcount):
@@ -423,6 +424,8 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
 
             if joint_full_batch:
                 eval_results = reformat_single_sequence(eval_results, dataset_index, repeatings_for_curve=taskcount)
+            if IT_full_batch:
+                eval_results[dataset_index] = [eval_results[dataset_index][0]]
 
             # PARSE AND STORE EVAL metrics
             collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters)
@@ -454,6 +457,9 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
 
         exp_data_entry.avg_acc /= exp_data_entry.dataset.task_count
         exp_data_entry.avg_forgetting /= exp_data_entry.dataset.task_count
+        if IT_full_batch or joint_full_batch:
+            print('HYX666e', exp_data_entry.avg_forgetting)
+
     return exp_data_entries, hyperparams_counts, max_task_count
 
 
@@ -563,7 +569,7 @@ def get_colors(experiment_data_entries):
 
 def get_plot_label(experiment_data_entry):
     """Label appended in legend after the method name."""
-    if experiment_data_entry.method.name == Joint.name:
+    if experiment_data_entry.method.name == Joint.name or experiment_data_entry.method.name == IsolatedTraining.name:
         return ": " + '%.2f (n/a)' % (experiment_data_entry.avg_acc)  # plot final model avg acc
     else:
         return ": " + '%.2f (%.2f)' % (
@@ -663,6 +669,7 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
     linestyles = []
     colors = []
     single_dot_idxes = []
+    single_dot_names = []
     markers = []
     markersizes = []
     for dataset_index in range(max_task_count):
@@ -689,8 +696,9 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
                     colors.append(experiment_data_entry.color)
                     markers.append(experiment_data_entry.marker)
                     markersizes.append(experiment_data_entry.markersize)
-                    if experiment_data_entry.method.name == Joint.name:
+                    if experiment_data_entry.method.name == Joint.name or experiment_data_entry.method.name == IsolatedTraining.name:
                         single_dot_idxes.append(idx)
+                        single_dot_names.append(experiment_data_entry.method.name)
             except:
                 print("NOT PLOTTING IDX ", idx)
 
@@ -718,7 +726,9 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
                                                save_img_path=save_img_path,
                                                single_dot_idxes=single_dot_idxes,
                                                ylim=ylim,
-                                               taskcount=taskcount)
+                                               taskcount=taskcount,
+                                               single_dot_names=single_dot_names
+                                                   )
         except Exception as e:
             print("ACC PLOT ERROR: ", e)
             traceback.print_exc()

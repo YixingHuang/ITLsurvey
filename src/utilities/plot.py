@@ -1,7 +1,7 @@
 import numpy as np
 import pylab
 from matplotlib import rcParams
-
+from methods.method import *
 rcParams['font.family'] = 'DejaVu Serif'
 rcParams['font.sans-serif'] = ['DejaVuSerif']
 import matplotlib.pyplot as plt
@@ -230,7 +230,8 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
                                   start_y_zero=False,
                                   labelmode='minor',
                                   single_dot_idxes=None,
-                                  taskcount=10):
+                                  taskcount=10,
+                                  single_dot_names=''):
     """
     Checkout for markers: https://matplotlib.org/api/markers_api.html
 
@@ -278,10 +279,18 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
             print("Plot X = {}".format(X))
             print("Xshift={}".format(plot_Xshift))
 
-            if curve_idx in single_dot_idxes:  # Plot e.g. JOINT as single point at the end
-                X = X[-1]
-                curve_data = curve_data[-1]
-                markersize = 12
+            if curve_idx in single_dot_idxes:
+                pos = single_dot_idxes.index(curve_idx)
+                if single_dot_names[pos] == Joint.name:  # Plot e.g. JOINT as single point at the end
+                    X = X[-1]
+                    curve_data = curve_data[-1]
+                    markersize = 12
+                elif single_dot_names[pos] == IsolatedTraining.name:
+                    X = X[0]
+                    curve_data = curve_data[0]
+                    markersize = 12
+                else:
+                    print("This method is not for single plot, curve_idx = ", curve_idx)
 
             ax.plot(X, curve_data, color=colors[curve_idx], label=label, linewidth=1.5, marker=marker,
                     linestyle=linestyles[curve_idx], markersize=markersize)
@@ -328,7 +337,6 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
     Xtick_majorlabels = np.repeat('C1', len(XgridlinesPosMajor))
 
     if labelmode == 'major':
-        print('HYX plot major')
         # Labels Major labeling only
         # Xticks = np.linspace(0, 10, ticks_per_plot)
         Xticks = XgridlinesPosMajor
@@ -336,7 +344,6 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         ax.set_xticks(Xticks, minor=False)
         ax.set_xticklabels(Xtick_majorlabels, minor=False)
     elif labelmode == 'both':
-        print('HYX plot1 both')
         # Labels both major minor gridlines
         offset_idx = 0
         Xticks_gridlines = []

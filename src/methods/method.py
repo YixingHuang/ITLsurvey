@@ -774,7 +774,7 @@ class FineTuning(Method):
 
 # Fine tuning (FT) based on SI, but with lambda 0
 class IsolatedTraining(Method):
-    name = "Isolate"
+    name = "IT"
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
@@ -784,19 +784,51 @@ class IsolatedTraining(Method):
 
     @staticmethod
     def grid_train(args, manager, lr):
+        # manager.previous_task_model_path = manager.base_model.path # force no weight transfer
         return Finetune.grid_train(args, manager, lr)
 
     def train(self, args, manager, hyperparams):
-        return trainSI.fine_tune_elastic(dataset_path=manager.current_task_dataset_path,
-                                         num_epochs=args.num_epochs,
-                                         exp_dir=manager.heuristic_exp_dir,
-                                         model_path=manager.base_model.path,
-                                         reg_lambda=0,
-                                         batch_size=args.batch_size, lr=args.lr, init_freeze=args.init_freeze,
-                                         weight_decay=args.weight_decay,
-                                         saving_freq=args.saving_freq,
-                                         optimizer=args.optimizer,
-                                         reload_optimizer=args.reload_optimizer)
+        # return Finetune.grid_train(args, manager, args.lr)
+
+        dataset_path = manager.current_task_dataset_path
+        args.lr = 0.05
+        print('lr is ' + str(args.lr))
+        print("DATASETS: ", dataset_path)
+
+        if not isinstance(dataset_path, list):  # If single path string
+            dataset_path = [dataset_path]
+
+        dset_dataloader, cumsum_dset_sizes, dset_classes = Finetune.compose_dataset(dataset_path, args.batch_size,
+                                                                                init_freeze=args.init_freeze)
+        return trainFT.fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes,
+                                 model_path=manager.base_model.path,
+                                 exp_dir=manager.heuristic_exp_dir,
+                                 num_epochs=args.num_epochs, lr=args.lr,
+                                 weight_decay=args.weight_decay,
+                                 enable_resume=True,  # Only resume when models saved
+                                 save_models_mode=True,
+                                 replace_last_classifier_layer=not args.init_freeze,
+                                 freq=args.saving_freq,
+                                 optimizer=args.optimizer
+                                 )
+    #     dataset_path = manager.current_task_dataset_path
+    #     if not isinstance(dataset_path, list):  # If single path string
+    #         dataset_path = [dataset_path]
+    #     dset_dataloader, cumsum_dset_sizes, dset_classes = Finetune.compose_dataset(dataset_path, args.batch_size,
+    #                                                                                 init_freeze=args.init_freeze)
+    #     print('The current learning rate used is ', args.lr)
+    #     return trainFT.fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes,
+    #                                  model_path=manager.base_model.path,
+    #                                  exp_dir=manager.heuristic_exp_dir,
+    #                                  num_epochs=args.num_epochs, lr=args.lr,
+    #                                  weight_decay=args.weight_decay,
+    #                                  enable_resume=True,  # Only resume when models saved
+    #                                  save_models_mode=True,
+    #                                  replace_last_classifier_layer=not args.init_freeze,
+    #                                  freq=args.saving_freq,
+    #                                  optimizer=args.optimizer
+    #                                  )
+
 
     def get_output(self, images, args):
         return get_output_def(args.model, args.heads, images, args.current_head_idx, args.final_layer_idx)
@@ -851,7 +883,7 @@ class IMM(Method):
     extra_hyperparams_count = 1
     hyperparams = OrderedDict({'lambda': 0.01})
     grid_chkpt = True
-    no_framework = True  # Outlier method (see paper)
+    no_framework = False  # Outlier method (see paper)
 
     def __init__(self, mode='mode'):
         if mode not in self.modes:
@@ -905,11 +937,11 @@ class IMM(Method):
     def get_output(self, images, args):
         return get_output_def(args.model, args.heads, images, args.current_head_idx, args.final_layer_idx)
 
-    @staticmethod
-    def grid_poststep(args, manager):
-        manager.previous_task_model_path = os.path.join(manager.best_exp_grid_node_dirname, 'best_model.pth.tar')
-        print("SINGLE_MODEL MODE: Set previous task model to ", manager.previous_task_model_path)
-        Finetune.grid_poststep_symlink(args, manager)
+    # @staticmethod
+    # def grid_poststep(args, manager):
+    #     manager.previous_task_model_path = os.path.join(manager.best_exp_grid_node_dirname, 'best_model.pth.tar')
+    #     print("SINGLE_MODEL MODE: Set previous task model to ", manager.previous_task_model_path)
+    #     Finetune.grid_poststep_symlink(args, manager)
 
     def eval_model_preprocessing(self, args):
         """ Merging step before evaluation. """
