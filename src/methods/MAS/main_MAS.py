@@ -72,8 +72,8 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
     preprocessing_time = time.time() - start_preprocess_time
     utils.save_preprocessing_time(exp_dir, preprocessing_time)
 
-    # get the number of features in this network and add a new task head
 
+    # get the number of features in this network and add a new task head
     ##############
     if not head_shared:
         last_layer_index = str(len(model_ft.classifier._modules) - 1)
@@ -87,8 +87,8 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
 
             # ************************************************
     criterion = nn.CrossEntropyLoss()
+    
     # update the objective based params
-
     if use_gpu:
         model_ft = model_ft.cuda()
 
@@ -109,7 +109,6 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
         del init_model
     # if there is a checkpoint to be resumed, in case where the training has stopped before on a given task
     resume = os.path.join(exp_dir, 'epoch.pth.tar')
-
     # train the model
     # this training functin passes the reg params to the optimizer to be used for penalizing changes on important params
     model_ft, acc = train_MAS.train_model(model_ft, criterion, optimizer_ft, lr, dset_loaders,

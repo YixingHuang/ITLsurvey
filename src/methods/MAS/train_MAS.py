@@ -138,8 +138,12 @@ class Weight_Regularized_Adam(optim.Adam):
                     # HERE MY CODE GOES, HYX
                     d_p = p.grad.data
                     reg_param = reg_params.get(p)
-                    omega = reg_param.get('omega')
-                    init_val = reg_param.get('init_val')
+                    if reg_param is None: ## HYX: this is inserted for the multi-head setting bug the new headers are excluded.
+                        omega = torch.tensor(0)
+                        init_val = p.data
+                    else:
+                        omega = reg_param.get('omega')
+                        init_val = reg_param.get('init_val')
                     curr_wegiht_val = p.data.clone()
                     init_val = init_val.cuda()
                     omega = omega.cuda()
