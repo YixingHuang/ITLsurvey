@@ -791,7 +791,6 @@ class IsolatedTraining(Method):
         # return Finetune.grid_train(args, manager, args.lr)
 
         dataset_path = manager.current_task_dataset_path
-        args.lr = 0.05
         print('lr is ' + str(args.lr))
         print("DATASETS: ", dataset_path)
 

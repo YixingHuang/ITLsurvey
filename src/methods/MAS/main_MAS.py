@@ -87,7 +87,7 @@ def fine_tune_objective_based_acuumelation(dataset_path, previous_task_model_pat
 
             # ************************************************
     criterion = nn.CrossEntropyLoss()
-    
+
     # update the objective based params
     if use_gpu:
         model_ft = model_ft.cuda()
