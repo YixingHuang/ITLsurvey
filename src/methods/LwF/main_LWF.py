@@ -179,7 +179,7 @@ def train_model_lwf(model, original_model, criterion, optimizer, lr, dset_loader
                     inputs, labels = Variable(inputs.cuda()), \
                                      Variable(labels.cuda())
                 else:
-                    if phase == 'train' and epoch > 0:
+                    if phase == 'train':
                         original_inputs = Variable(original_inputs, requires_grad=False)
                     inputs, labels = Variable(inputs), Variable(labels)
 
