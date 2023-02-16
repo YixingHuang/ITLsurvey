@@ -457,7 +457,7 @@ def train_model(model, criterion, optimizer, lr, dset_loaders, dset_sizes, use_g
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train' and epoch > 0:
+            if phase == 'train':
                 optimizer, lr, continue_training = set_lr(optimizer, lr, count=val_beat_counts)
                 if not continue_training:
                     traminate_protocol(since, best_acc)

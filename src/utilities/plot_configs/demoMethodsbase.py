@@ -31,11 +31,11 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "base_training_reloadOp"
+gridsearch_name = "base_training_adam"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-# methods = [Joint(), IsolatedTraining(), FineTuning(), SI(), EWC(), LWF(), EBLL(), MAS(), IMM('mean'), IMM('mode')]
-methods = [FineTuning(), EWC()]
+methods = [Joint(), IsolatedTraining(), FineTuning(), SI(), LWF(), EBLL(), IMM('mean'), IMM('mode')]
+# methods = [FineTuning(), EWC()]
 # methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), IMM('mean'), IMM('mode')]
 # methods = [SI(), EWC(), LWF(), MAS()]
 # methods = [IMM('mean'), IMM('mode')]
