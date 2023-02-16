@@ -343,7 +343,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
                 code_loss = 0.0
                 # Apply distillation loss to all old tasks.
 
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     for idx in range(len(target_logits)):
                         dist_loss += distillation_loss(tasks_outputs[idx], target_logits[idx], temperature, scale[idx])
                     # backward + optimize only if in training phase
@@ -352,7 +352,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
 
                 total_loss = reg_lambda * dist_loss + task_loss + reg_alpha * code_loss
                 preprocessing_time += time.time() - start_preprocess_time
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     total_loss.backward()
                     optimizer.step()
 
@@ -362,7 +362,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
 
                 # statistics
                 running_loss += task_loss.data.item()
-                if phase == 'train' and epoch > 0:
+                if phase == 'train':
                     running_code_loss += code_loss.data.item()
                 running_corrects += torch.sum(preds == labels.data).item()
 
@@ -371,7 +371,7 @@ def train_model_ebll(model, original_model, criterion, code_criterion, optimizer
             epoch_code_loss = running_code_loss / dset_sizes[phase]
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-            if phase == 'train' and epoch > 0:
+            if phase == 'train':
                 print('TASK CODE LOSS: {:.4f}'.format(epoch_code_loss))
             # deep copy the model
             if phase == 'val':
