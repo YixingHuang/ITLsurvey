@@ -961,7 +961,8 @@ class EBLL(Method):
     extra_hyperparams_count = 2
     hyperparams = OrderedDict({'reg_lambda': 10, 'ebll_reg_alpha': 1, })
     static_hyperparams = OrderedDict({"autoencoder_lr": [0.01], "autoencoder_epochs": 50,  # Paper defaults
-                                      "encoder_alphas": [1e-1, 1e-2], "encoder_dims": [100, 300]})  # Grid
+                                      "encoder_alphas": [1e-1], "encoder_dims": [100]})
+                                #"encoder_alphas": [1e-1, 1e-2], "encoder_dims": [100, 300]})  # Review paper defaults
 
     @staticmethod
     def grid_train(args, manager, lr):
@@ -990,6 +991,12 @@ class EBLL(Method):
         # GRID
         best_autoencoder_path = None
         best_autoencoder_acc = 0
+        if not type(self.static_hyperparams['encoder_dims']) == list:
+            self.static_hyperparams['encoder_dims'] = [self.static_hyperparams['encoder_dims']]
+        if not type(self.static_hyperparams['encoder_alphas']) == list:
+            self.static_hyperparams['encoder_alphas'] = [self.static_hyperparams['encoder_alphas']]
+        if not type(self.static_hyperparams['autoencoder_lr']) == list:
+            self.static_hyperparams['autoencoder_lr'] = [self.static_hyperparams['autoencoder_lr']]
         for hyperparam_it in list(itertools.product(self.static_hyperparams['encoder_dims'],
                                                     self.static_hyperparams['encoder_alphas'],
                                                     self.static_hyperparams['autoencoder_lr']
