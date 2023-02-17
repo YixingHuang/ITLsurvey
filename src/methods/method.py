@@ -253,7 +253,7 @@ def set_hyperparams(method, hyperparams, static_params=False):
         split_params = [float(x) for x in split_list.split(',') if not leave_default(x)]
         split_params = split_params[0] if len(split_params) == 1 else split_params
         if len(split_lists) == 1:
-            hyperparam_vals = split_params
+            hyperparam_vals = [split_params] #HYX
         else:
             hyperparam_vals.append(split_params)
     if static_params:
