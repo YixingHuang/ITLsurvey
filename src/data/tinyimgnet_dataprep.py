@@ -67,7 +67,7 @@ def preprocess_val(root_path):
         utils.attempt_move(os.path.join(val_path, 'images', imagename), this_class_dir)
 
 
-def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=False):
+def divide_into_centers(root_path, center_count=10, num_classes=10, noisy_center=5):
     """
     Divides total subset data into multi-centers (into dirs "task_x").
     :return:
@@ -84,6 +84,9 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=False)
     subsets = ['train', 'val']
     img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
 
+    noisy = False
+    if noisy_center is not None:
+        noisy = True
     for subset in subsets:
         center_id = 1
         if subset == 'val':
@@ -104,7 +107,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, noisy=False)
             for class_index in range(0, len(classes)):
                 target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
-                if noisy and center_id == 5: #only the third center adds noise
+                if noisy and center_id == noisy_center: #only the third center adds noise
                     target2 = target + '_noisy_25'
                     src_path = os.path.join(root_path, subset, target2, 'images')
                 allfiles = os.listdir(src_path)
@@ -333,7 +336,7 @@ def create_train_val_test_imagefolder_dict_joint(dataset_root, img_paths, outfil
 
 
 def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count=10, overwrite=False, balanced=True,
-                    num_class=10):
+                    num_class=10, noisy_center=5):
     """
     Main datapreparation code for Tiny Imagenet.
     First download the set and set target_path to unzipped download path.
@@ -366,7 +369,7 @@ def prepare_dataset(dset, target_path, survey_order=True, joint=True, task_count
     if not os.path.isfile(os.path.join(target_path, "DIV.TOKEN")) or overwrite:
         print("PREPARING DATASET: DIVIDING INTO {} TASKS".format(task_count))
         if balanced:
-            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class)
+            img_paths = divide_into_centers(target_path, center_count=task_count, num_classes=num_class, noisy_center=noisy_center)
         else:
             img_paths = divide_into_centers_unbalanced(target_path, center_count=task_count, num_classes=num_class)
         torch.save({}, os.path.join(target_path, 'DIV.TOKEN'))

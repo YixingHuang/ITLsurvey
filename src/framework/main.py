@@ -22,6 +22,8 @@ parser.add_argument('--method_name', type=str, default=None)
 parser.add_argument('--ds_name', type=str, default=None)
 parser.add_argument('--unbalanced_data', action="store_true",
                     help="unbalanced class distribution over centers")
+parser.add_argument('--noisy_center', type=int, default=None,
+                    help="choice for noisy center, None, 3 or 5")
 parser.add_argument('--n_tasks', type=int, default=5, help='the total number of tasks/centers')
 parser.add_argument('--n_iters', type=int, default=5, help='the total number of iterations of weight transfer')
 
@@ -142,7 +144,7 @@ def main(method=None, dataset=None):
         if args.unbalanced_data:
             dataset = datasets.parse(args.ds_name, args.n_tasks, False, num_class=args.num_class)
         else:
-            dataset = datasets.parse(args.ds_name, args.n_tasks, True, num_class=args.num_class)
+            dataset = datasets.parse(args.ds_name, args.n_tasks, True, num_class=args.num_class, noisy_center=args.noisy_center)
 
     num_classes = len(dataset.classes_per_task['1']) # each center has the same number of classes
     assert num_classes == args.num_class, "the number of classes in the dataset should be equal to that from args"

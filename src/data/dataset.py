@@ -10,7 +10,7 @@ import data.inaturalist_dataprep as dataprep_inat
 import data.recogseq_dataprep as dataprep_recogseq
 import data.retina_dataprep as dataprep_retina
 
-def parse(ds_name, ntasks, balanced=True, num_class=10):
+def parse(ds_name, ntasks, balanced=True, num_class=10, noisy_center=5):
     """Parse arg string to actual object."""
     if ds_name == InaturalistDataset.argname:
         return InaturalistDataset()
@@ -20,7 +20,7 @@ def parse(ds_name, ntasks, balanced=True, num_class=10):
         return InaturalistDatasetRelToUnrel()
 
     elif ds_name == TinyImgnetDataset.argname:
-        return TinyImgnetDataset(task_count=ntasks, balanced=balanced, num_class=num_class)
+        return TinyImgnetDataset(task_count=ntasks, balanced=balanced, num_class=num_class, noisy_center=noisy_center)
     elif ds_name == TinyImgnetDatasetHardToEasy.argname:
         return TinyImgnetDatasetHardToEasy()
     elif ds_name == TinyImgnetDatasetEasyToHard.argname:
@@ -213,7 +213,7 @@ class TinyImgnetDataset(CustomDataset):
     tinyimgnet_url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
     input_size = (64, 64)
 
-    def __init__(self, crop=False, create=True, task_count=5, dataset_root=None, overwrite=False, balanced=True, num_class=10):
+    def __init__(self, crop=False, create=True, task_count=5, dataset_root=None, overwrite=False, balanced=True, num_class=10, noisy_center=5):
         config = utils.get_parsed_config()
 
         self.dataset_root = dataset_root if dataset_root else os.path.join(
@@ -229,7 +229,7 @@ class TinyImgnetDataset(CustomDataset):
         if create:
             dataprep_tiny.download_dset(os.path.dirname(self.dataset_root))
             dataprep_tiny.prepare_dataset(self, self.dataset_root, task_count=self.task_count, survey_order=True,
-                                          overwrite=overwrite, balanced=balanced, num_class=num_class)
+                                          overwrite=overwrite, balanced=balanced, num_class=num_class, noisy_center=noisy_center)
         # Dataset with bare 64x64, no 56x56 crop
         if not crop:
             self.dataset_root = os.path.join(self.dataset_root, 'no_crop')
