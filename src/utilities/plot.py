@@ -231,7 +231,8 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
                                   labelmode='minor',
                                   single_dot_idxes=None,
                                   taskcount=10,
-                                  single_dot_names=''):
+                                  single_dot_names='',
+                                  multi_head=None):
     """
     Checkout for markers: https://matplotlib.org/api/markers_api.html
 
@@ -270,7 +271,10 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         print("Plot idx = {}".format(plot_idx))
         for curve_idx, curve_data in enumerate(curves_data):  # curves in 1 subplot
             # Shift to graph + offset of not testing on prev task
-            plot_Xshift = i * panel_length + 1 * plot_idx
+            if multi_head:
+                plot_Xshift = i * panel_length + 1 * plot_idx
+            else:
+                plot_Xshift = i * panel_length
 
             X = np.arange(len(curve_data)) + plot_Xshift
             label = labels[curve_idx] if i == 0 else None
@@ -283,10 +287,14 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
                 pos = single_dot_idxes.index(curve_idx)
                 if single_dot_names[pos] == Joint.name:  # Plot e.g. JOINT as single point at the end
                     X = X[-1]
+                    if not multi_head:
+                        X = X + 1 * plot_idx
                     curve_data = curve_data[-1]
                     markersize = 12
                 elif single_dot_names[pos] == IsolatedTraining.name:
                     X = X[0]
+                    if not multi_head:
+                        X = X + 1 * plot_idx
                     curve_data = curve_data[0]
                     markersize = 12
                 else:

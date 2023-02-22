@@ -233,8 +233,8 @@ def eval_task_steps_accuracy(args, manager, ds_paths, model_paths):
 
     if args.debug:
         print("Testing Dataset = ", args.dset_path)
-
-    for trained_model_idx in range(args.eval_dset_idx, len(ds_paths)):  # Iterate models trained on task_idx
+    model_start_idx = args.eval_dset_idx if args.multi_head else 0
+    for trained_model_idx in range(model_start_idx, len(ds_paths)):  # Iterate models trained on task_idx
         args.trained_model_idx = trained_model_idx
         print('=> Testing model trained up to and including TASK ', str(trained_model_idx + 1))
         args.eval_model_path = model_paths[trained_model_idx]  # Model for current task

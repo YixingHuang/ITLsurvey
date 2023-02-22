@@ -23,8 +23,8 @@ cmd9 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name AdamSWT
 
 cmd10 = 'py ../framework/main.py small_VGG9_cl_128_128  --gridsearch_name AdamSWT_N3 --method_name  IT  --ds_name tiny   --test  --test_overwrite_mode --num_epochs 50 --n_iters 1  --first_task_basemodel_folder  first_task_AdamSWT_N3 --optimizer 1  --fixed_init_lr 0.001 --num_class 10  --drop_margin 0.5 --no_maximal_plasticity_search'
 
-cmds = [cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8, cmd9, cmd10]
-
+# cmds = [cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8, cmd9, cmd10]
+cmds = [cmd3, cmd4, cmd5, cmd6, cmd7, cmd8, cmd9]
 for cmd in cmds:
  os.system(cmd)
 

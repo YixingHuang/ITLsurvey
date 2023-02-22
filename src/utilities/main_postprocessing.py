@@ -43,12 +43,12 @@ def analyze_experiments(experiment_data_entries, hyperparams_selection=None, plo
 
 def analyze_experiments_icl(experiment_data_entries, hyperparams_selection=None, plot_seq_acc=True,
                         plot_seq_forgetting=False, save_img_parent_dir=None, img_extention='png', legend_location='top',
-                        all_diff_color_force=False, ylim=None, taskcount=10, n_iters=5, gridsearch_name='reproduce'):
+                        all_diff_color_force=False, ylim=None, taskcount=10, n_iters=5, gridsearch_name='reproduce', multi_head=None):
     """ Pipeline data collection and plotting/summary."""
 
     # Collect data
     experiment_data_entries, hyperparams_counts, max_task_count = collect_dataframe_icl(experiment_data_entries,
-                                                                                    hyperparams_selection, taskcount, n_iters)
+                                                                                    hyperparams_selection, taskcount, n_iters, multi_head=multi_head)
     # Pad entries
     pad_dataframe(experiment_data_entries, hyperparams_counts)
     # Plot
@@ -66,7 +66,7 @@ def analyze_experiments_icl(experiment_data_entries, hyperparams_selection=None,
                          legend_location=legend_location,
                          all_diff_color_force=all_diff_color_force,
                          ylim=ylim,
-                         taskcount=taskcount)
+                         taskcount=taskcount, multi_head=multi_head)
 
     # Collect some statistics
     print_exp_statistics(experiment_data_entries)
@@ -376,7 +376,7 @@ def collect_dataframe(exp_data_entries, hyperparams_selection=None, taskcount=No
     return exp_data_entries, hyperparams_counts, max_task_count
 
 
-def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcount=None, n_iters=None):
+def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcount=None, n_iters=None, multi_head=None):
     """
     Read dict eval results and put data in the entries.
     """
@@ -428,7 +428,7 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
                 eval_results[dataset_index] = [eval_results[dataset_index][0]]
 
             # PARSE AND STORE EVAL metrics
-            collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters)
+            collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters, multi_head=multi_head)
 
             # LOAD HYPERPARAMS
             load_hyperparams = True
@@ -484,14 +484,15 @@ def collect_eval_metrics(exp_data_entry, eval_results, dataset_index, taskcount)
             exp_data_entry.seq_forgetting[dataset_index] = []
 
 
-def collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters):
+def collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters, multi_head=None):
     """Update values of an entry."""
     # Collect EVAL metrics
     if isinstance(eval_results, list):
         eval_results = {'': eval_results}
     assert len(eval_results.keys()) == 1
+    total_acc_length = taskcount * n_iters - dataset_index if multi_head else taskcount * n_iters
     for result_key in eval_results:
-        res = eval_results[result_key][:taskcount * n_iters - dataset_index]
+        res = eval_results[result_key][:total_acc_length]
         exp_data_entry.seq_acc[dataset_index] = res
         exp_data_entry.final_model_seq_test_acc.append(res[-1])
         exp_data_entry.avg_acc += exp_data_entry.final_model_seq_test_acc[-1]
@@ -636,7 +637,7 @@ def plot_multigraphs(experiment_data_entries, save_img_path, max_task_count,
 
     if plot_seq_acc:
         try:
-            plot.plot_line_horizontal_sequence_icl(acc_plots, colors, linestyles, labels, markers, markersizes,
+            plot.plot_line_horizontal_sequence(acc_plots, colors, linestyles, labels, markers, markersizes,
                                                legend=legend_location,
                                                ylabel="Accuracy %",
                                                save_img_path=save_img_path,
@@ -649,7 +650,7 @@ def plot_multigraphs(experiment_data_entries, save_img_path, max_task_count,
 
     if plot_seq_forgetting:
         try:
-            plot.plot_line_horizontal_sequence_icl(forgetting_plots, colors, linestyles, labels, markers, markersizes,
+            plot.plot_line_horizontal_sequence(forgetting_plots, colors, linestyles, labels, markers, markersizes,
                                                legend=legend_location,
                                                ylabel="Forgetting %",
                                                save_img_path=save_img_path)
@@ -661,7 +662,7 @@ def plot_multigraphs(experiment_data_entries, save_img_path, max_task_count,
 # HYX: the plot for iterative continual learning (ICL)
 def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
                      label_avg_plot_acc=True, plot_seq_acc=True, plot_seq_forgetting=False,
-                     legend_location='top', all_diff_color_force=False, ylim=None, taskcount=10):
+                     legend_location='top', all_diff_color_force=False, ylim=None, taskcount=10, multi_head=None):
     """All eval data for all tasks in one graph (horizontally stacked task performances)."""
     acc_plots = []
     forgetting_plots = []
@@ -727,7 +728,8 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
                                                single_dot_idxes=single_dot_idxes,
                                                ylim=ylim,
                                                taskcount=taskcount,
-                                               single_dot_names=single_dot_names
+                                               single_dot_names=single_dot_names,
+                                                   multi_head=multi_head
                                                    )
         except Exception as e:
             print("ACC PLOT ERROR: ", e)
@@ -738,7 +740,7 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
             plot.plot_line_horizontal_sequence_icl(forgetting_plots, colors, linestyles, labels, markers, markersizes,
                                                legend=legend_location,
                                                ylabel="Forgetting %",
-                                               save_img_path=save_img_path)
+                                               save_img_path=save_img_path, multi_head=multi_head)
         except Exception as e:
             print("FORGETTING PLOT ERROR: ", e)
             traceback.print_exc()
