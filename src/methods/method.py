@@ -668,7 +668,7 @@ class EWC(Method):
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
-    hyperparams = OrderedDict({'lambda': 400})
+    hyperparams = OrderedDict({'lambda': 10})
 
     @staticmethod
     def grid_train(args, manager, lr):
@@ -703,7 +703,7 @@ class SI(Method):
     eval_name = name
     category = Category.MODEL_BASED
     extra_hyperparams_count = 1
-    hyperparams = OrderedDict({'lambda': 400})
+    hyperparams = OrderedDict({'lambda': 10})
 
     # start_scratch = True  # Reference model other methods, should run in basemodel_dump mode
 
