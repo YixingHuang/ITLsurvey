@@ -979,7 +979,6 @@ class EBLL(Method):
         """Gridsearch for an autoencoder for the task corresponding with given task counter."""
         autoencoder_parent_exp_dir = os.path.join(manager.parent_exp_dir, 'task_' + str(args.task_counter - 1),
                                                   'ENCODER_TRAINING')
-
         # CHECKPOINT
         processed_hyperparams = {'header': ('dim', 'alpha', 'lr')}
         grid_checkpoint_file = os.path.join(autoencoder_parent_exp_dir, 'grid_checkpoint.pth')
@@ -1235,7 +1234,11 @@ class Finetune(Method):
         target_head_idx = 0  # first in list
         print("EVAL on prev heads: ", args.head_paths)
         assert len(target_heads) == 1
-
+        # print("EVAL on dataset: ", args.dset_path)
+        print("EVAL model path: ", args.eval_model_path)
+        print("EVAL dset inx: ", args.eval_dset_idx)
+        print('head_layer_idx: ', head_layer_idx)
+        print('target_heads: ', target_heads)
         accuracy = test_network.test_model(manager.method, model, args.dset_path, target_head_idx, subset=args.test_set,
                                            target_head=target_heads, batch_size=args.batch_size,
                                            task_idx=args.eval_dset_idx)

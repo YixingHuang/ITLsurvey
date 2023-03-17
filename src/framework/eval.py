@@ -238,6 +238,8 @@ def eval_task_steps_accuracy(args, manager, ds_paths, model_paths):
         args.trained_model_idx = trained_model_idx
         print('=> Testing model trained up to and including TASK ', str(trained_model_idx + 1))
         args.eval_model_path = model_paths[trained_model_idx]  # Model for current task
+        if not args.multi_head:
+            args.head_paths = model_paths[trained_model_idx]  # Do not change head index
         if args.debug:
             print("Testing on model = ", args.eval_model_path)
 
@@ -246,7 +248,7 @@ def eval_task_steps_accuracy(args, manager, ds_paths, model_paths):
 
             # Append to sequences
             seq_acc[args.eval_dset_idx].append(accuracy)
-            if trained_model_idx > args.eval_dset_idx:
+            if trained_model_idx > model_start_idx:
                 first_task_acc = seq_acc[args.eval_dset_idx][0]
                 seq_forgetting[args.eval_dset_idx].append(first_task_acc - accuracy)
             if head_accuracy is not None:
