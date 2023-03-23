@@ -240,7 +240,7 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
     :param labels: Ordered array of labels
     :param legend: best or "upper/lower/center right/left/center"
     """
-    legend_col = 4  # 5
+    legend_col = 4 # 5
     height_inch = 8
     width_inch = 20
     x_tick_fontsize = 16
@@ -271,7 +271,13 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         print("Plot idx = {}".format(plot_idx))
         for curve_idx, curve_data in enumerate(curves_data):  # curves in 1 subplot
             # Shift to graph + offset of not testing on prev task
-            if multi_head:
+            if multi_head == None:
+                sub_multi_head = None
+            elif type(multi_head) == list:
+                sub_multi_head = multi_head[curve_idx]
+            else:
+                sub_multi_head = True
+            if sub_multi_head:
                 plot_Xshift = i * panel_length + 1 * plot_idx
             else:
                 plot_Xshift = i * panel_length
@@ -287,13 +293,13 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
                 pos = single_dot_idxes.index(curve_idx)
                 if single_dot_names[pos] == Joint.name:  # Plot e.g. JOINT as single point at the end
                     X = X[-1]
-                    if not multi_head:
+                    if not sub_multi_head:
                         X = X + 1 * plot_idx
                     curve_data = curve_data[-1]
                     markersize = 12
                 elif single_dot_names[pos] == IsolatedTraining.name:
                     X = X[0]
-                    if not multi_head:
+                    if not sub_multi_head:
                         X = X + 1 * plot_idx
                     curve_data = curve_data[0]
                     markersize = 12

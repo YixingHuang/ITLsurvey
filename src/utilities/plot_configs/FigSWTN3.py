@@ -31,15 +31,11 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "AdamCWT_N5_redo"
+gridsearch_name = "AdamSWT_N3"
 #############################################
-#methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
-# methods = [Joint(), IsolatedTraining(), FineTuning(), SI(), EWC(), LWF(), EBLL(), MAS(), IMM('mean'), IMM('mode')]
-methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), EBLL(), IMM('mean'), IMM('mode')]
-# methods = [FineTuning()]
-# methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), IMM('mean'), IMM('mode')]
-# methods = [IMM('mean'), IMM('mode')]
-# methods = [FineTuning(), SI(), IMM('mean'), IMM('mode')]
+
+methods = [Joint(), IsolatedTraining(), FineTuning(), SI(), EWC(), MAS(), LWF(), EBLL(), IMM('mean'), IMM('mode')]
+
 for method in methods:
     # method = SI()
     method_names.append(method.name)
@@ -61,4 +57,4 @@ if save_img:
     out_name = '_'.join(['DEMO', dataset.name, "(" + '_'.join(method_names) + ")", model.name])
 
 analyze_experiments_icl(method_data_entries, hyperparams_selection=hyperparams_selection, plot_seq_acc=plot_seq_acc,
-                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, img_extention=img_extention, taskcount=5, n_iters=5, gridsearch_name=gridsearch_name)
+                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, img_extention=img_extention, taskcount=5, n_iters=1, gridsearch_name=gridsearch_name, multi_head=None)

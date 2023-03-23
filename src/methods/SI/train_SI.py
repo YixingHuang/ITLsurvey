@@ -302,8 +302,8 @@ class Elastic_Adam(optim.Adam):
                     init_val = init_val.cuda()
                     omega = omega.cuda()
                     weight_dif = curr_wegiht_val.add(-1, init_val)
-                    # regulizer = torch.mul(weight_dif, 2 * reg_lambda * omega)
-                    regulizer = torch.mul(weight_dif, 2 * reg_lambda / (omega + 1))
+                    regulizer = torch.mul(weight_dif, 2 * reg_lambda * omega)
+                    # regulizer = torch.mul(weight_dif, 2 * reg_lambda / (omega + 1))
                     #
                     # print("HYX, gradient sum before operation:", torch.sum(p.grad.data.clone()).item(), index)
                     d_p.add_(regulizer)

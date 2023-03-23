@@ -47,17 +47,34 @@ method_data_entries = []
 # gridsearch_names = ['Adam_unbalancedDataAmountMidLastEpoch', 'Adam_unbalancedDataAmountMidLastEpoch_repeat2', 'Adam_unbalancedDataAmountMidLastEpoch_repeat3', 'Adam_unbalancedDataAmountMidLastEpoch_repeat4', 'Adam_unbalancedDataAmountMidLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpoch', 'Adam_unbalancedDataAmountLastEpoch_repeat2', 'Adam_unbalancedDataAmountLastEpoch_repeat3', 'Adam_unbalancedDataAmountLastEpoch_repeat4', 'Adam_unbalancedDataAmountLastEpoch_repeat5']
 # gridsearch_names = ['Adam_unbalancedDataAmountLastEpochE100', 'Adam_unbalancedDataAmountLastEpochE100_repeat2', 'Adam_unbalancedDataAmountLastEpochE100_repeat3', 'Adam_unbalancedDataAmountLastEpochE100_repeat4', 'Adam_unbalancedDataAmountLastEpochE100_repeat5']
-gridsearch_names = ['Adam_10Classes_batch5']
+# gridsearch_names = ['Adam_10Classes_noisy25_ICL_reg_repeat', 'Adam_10Classes_noisy25_ICL_reg_repeat2', 'Adam_10Classes_noisy25_ICL_reg_repeat3', 'Adam_10Classes_noisy25_ICL_reg_repeat4']
+# gridsearch_names = ['Adam_10Classes_noisy25_ICL_5ep_repeat', 'Adam_10Classes_noisy25_ICL_5ep_repeat2', 'Adam_10Classes_noisy25_ICL_5ep_repeat3', 'Adam_10Classes_noisy25_ICL_5ep_repeat4', 'Adam_10Classes_noisy25_ICL_5ep_repeat5']
 
+ #['base_training_adam_ReloadOp_SH_reweight', 'base_training_adam_ReloadOp_SH_reweight_repeat2',  'base_training_adam_ReloadOp_SH_reweight_repeat3','base_training_adam_ReloadOp_SH_reweight_repeat4']
+# gridsearch_names = ['base_training_adam_ReloadOp_SH_reweight_repeat5',
+#                     'base_training_adam_ReloadOp_SH_reweight_repeat6', 'base_training_adam_ReloadOp_SH_reweight_repeat12', 'base_training_adam_ReloadOp_SH_reweight_repeat13', 'base_training_adam_ReloadOp_SH_reweight_repeat14', 'base_training_adam_ReloadOp_SH_reweight_repeat15','base_training_adam_ReloadOp_SH_reweight_repeat16',
+#                     'base_training_adam_ReloadOp_SH_reweight_repeat7', 'base_training_adam_ReloadOp_SH_reweight_repeat8', 'base_training_adam_ReloadOp_SH_reweight_repeat9', 'base_training_adam_ReloadOp_SH_reweight_repeat10', 'base_training_adam_ReloadOp_SH_reweight_repeat11',
+# 'base_training_adam_ReloadOp_SH_reweight_repeat30',
+# 'base_training_adam_ReloadOp_SH_reweight_repeat31',
+#                     ]
+# gridsearch_names = ['base_training', 'base_training_reloadOp', 'base_training_reloadOp_SHRedo', 'base_training_paper', 'base_training_reloadOp_paper', 'base_training_reloadOp_SH_paper', 'base_training_Adam_paper', 'base_training_reloadOp_Adam_paper', 'base_training_reloadOp_Adam_paper_redo', 'base_training_reloadOp_SH_Adam_paper']
+# multi_head_list = [True, True, False, True, True, False, True,  True, True, False]
+# legends = ['FT1', 'FT2', 'FT3', 'FT4', 'FT5', 'FT6', 'FT7', 'FT8', 'FT9', 'FT10']
+gridsearch_names = ['base_training', 'base_training_reloadOp', 'base_training_renewOp_SH', 'base_training_reloadOp_SHRedo',  'base_training_Adam_paper', 'base_training_reloadOp_Adam_paper', 'base_training_renewOp_SH_Adam_paper', 'base_training_reloadOp_SH_Adam_paper']
+multi_head_list = [True, True, False, False, True, True, False, False]
+# legends = ['FT1', 'FT2', 'FT3', 'FT4', 'FT5', 'FT6']
+legends = ['SGD+NOp+MH', 'SGD+ROp+MH', 'SGD+NOp+SH', 'SGD+ROp+SH', 'Adam+NOp+MH', 'Adam+ROp+MH', 'Adam+NOp+SH', 'Adam+ROp+SH']
 #############################################
 methods = [Joint(), SI(), EWC(), LWF(), EBLL()]
 # for method in methods:
 for gridsearch_name in gridsearch_names:
-    method = EBLL()
+    # method = IMM('mean')
+    # method = IMM('mode')
+    # method = SI()
     # method = MAS()
     # method = LWF()
     # method = Joint()
-    # method = FineTuning()
+    method = FineTuning()
     method_names.append(method.name)
     label = None
 
@@ -77,4 +94,6 @@ if save_img:
     out_name = '_'.join(['DEMO', dataset.name, "(" + '_'.join(method_names) + ")", model.name])
 
 analyze_experiments_icl(method_data_entries, hyperparams_selection=hyperparams_selection, plot_seq_acc=plot_seq_acc,
-                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, all_diff_color_force=True, img_extention=img_extention, taskcount=5, n_iters=5, gridsearch_name=gridsearch_name)
+                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, all_diff_color_force=True,
+                        img_extention=img_extention, taskcount=5, n_iters=1, gridsearch_name=gridsearch_name,
+                        multi_head=multi_head_list, legends=legends)

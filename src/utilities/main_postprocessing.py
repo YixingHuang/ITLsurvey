@@ -43,7 +43,8 @@ def analyze_experiments(experiment_data_entries, hyperparams_selection=None, plo
 
 def analyze_experiments_icl(experiment_data_entries, hyperparams_selection=None, plot_seq_acc=True,
                         plot_seq_forgetting=False, save_img_parent_dir=None, img_extention='png', legend_location='top',
-                        all_diff_color_force=False, ylim=None, taskcount=10, n_iters=5, gridsearch_name='reproduce', multi_head=None):
+                        all_diff_color_force=False, ylim=None, taskcount=10, n_iters=5, gridsearch_name='reproduce',
+                            multi_head=None, legends=None):
     """ Pipeline data collection and plotting/summary."""
 
     # Collect data
@@ -66,7 +67,7 @@ def analyze_experiments_icl(experiment_data_entries, hyperparams_selection=None,
                          legend_location=legend_location,
                          all_diff_color_force=all_diff_color_force,
                          ylim=ylim,
-                         taskcount=taskcount, multi_head=multi_head)
+                         taskcount=taskcount, multi_head=multi_head, legends=legends)
 
     # Collect some statistics
     print_exp_statistics(experiment_data_entries)
@@ -386,7 +387,12 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
     for exp_data_entry_idx, exp_data_entry in enumerate(exp_data_entries[:]):
         print("preprocessing experiment: ", exp_data_entry)
         taskcount = taskcount if taskcount else exp_data_entry.dataset.task_count
-
+        if multi_head == None:
+            sub_multi_head = None
+        elif type(multi_head) == list:
+            sub_multi_head = multi_head[exp_data_entry_idx]
+        else:
+            sub_multi_head = True
         if taskcount > max_task_count:
             max_task_count = taskcount
 
@@ -428,7 +434,7 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
                 eval_results[dataset_index] = [eval_results[dataset_index][0]]
 
             # PARSE AND STORE EVAL metrics
-            collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters, multi_head=multi_head)
+            collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters, multi_head=sub_multi_head)
 
             # LOAD HYPERPARAMS
             load_hyperparams = True
@@ -662,7 +668,8 @@ def plot_multigraphs(experiment_data_entries, save_img_path, max_task_count,
 # HYX: the plot for iterative continual learning (ICL)
 def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
                      label_avg_plot_acc=True, plot_seq_acc=True, plot_seq_forgetting=False,
-                     legend_location='top', all_diff_color_force=False, ylim=None, taskcount=10, multi_head=None):
+                     legend_location='top', all_diff_color_force=False, ylim=None, taskcount=10, multi_head=None,
+                         legends=None):
     """All eval data for all tasks in one graph (horizontally stacked task performances)."""
     acc_plots = []
     forgetting_plots = []
@@ -689,7 +696,10 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
 
                 # Only need to init all exps once
                 if dataset_index == 0:
-                    label = experiment_data_entry.label
+                    if legends is not None:
+                        label = legends[idx]
+                    else:
+                        label = experiment_data_entry.label
                     if label_avg_plot_acc:
                         label += get_plot_label(experiment_data_entry)
                     labels.append(label)

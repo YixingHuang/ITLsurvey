@@ -31,13 +31,15 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "Adam_10Classes_noisy25_ICL"
+gridsearch_name = "base_training_adam_ReloadOp_SH_reweight"
 #############################################
 #methods = [FineTuning(), SI(), LWF(), EWC(), MAS(), IMM('mean'), IMM('mode')]
 # methods = [Joint(), FineTuning(), SI(), EWC(), LWF(), EBLL(), MAS(), IMM('mean'), IMM('mode')]
 # methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), IMM('mean'), IMM('mode')]
 # methods = [SI(), EWC(), LWF(), MAS()]
-methods = [IMM('mean'), IMM('mode')]
+# methods = [IMM('mean'), IMM('mode')]
+# methods = [FineTuning(), SI(), IMM('mean'), IMM('mode')]
+methods = [SI()]
 for method in methods:
     # method = SI()
     method_names.append(method.name)
@@ -59,4 +61,4 @@ if save_img:
     out_name = '_'.join(['DEMO', dataset.name, "(" + '_'.join(method_names) + ")", model.name])
 
 analyze_experiments_icl(method_data_entries, hyperparams_selection=hyperparams_selection, plot_seq_acc=plot_seq_acc,
-                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, img_extention=img_extention, taskcount=5, n_iters=5, gridsearch_name=gridsearch_name)
+                    plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, img_extention=img_extention, taskcount=5, n_iters=10, gridsearch_name=gridsearch_name, all_diff_color_force=True)
