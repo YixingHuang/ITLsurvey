@@ -103,12 +103,13 @@ class ExperimentDataEntry(object):
         # Metrics (all tasks)
         self.seq_acc = {}
         self.seq_forgetting = {}
+        self.seq_improvement = {}
         self.final_model_seq_test_acc = []
 
         # Avg (over all tasks final model)
         self.avg_acc = 0
         self.avg_forgetting = 0
-
+        self.avg_improvement = 0
         # Additional info
         self.hyperparams = {}
 
@@ -216,12 +217,14 @@ def print_exp_statistics(experiment_data_entries, table_sep='\t'):
     print("SUMMARY")
     print("-" * 50)
 
-    print(table_sep.join(["'EXPERIMENT'", "'AVG ACC(FINAL MODEL)'", "'AVG FORGETTING(FINAL MODEL)'"]))
+    print(table_sep.join(["'EXPERIMENT'", "'AVG ACC(FINAL MODEL)'", "'AVG FORGETTING(FINAL MODEL)'", "'AVG Monotonicity (ALL MODELS)'"]))
     for experiment_data_entry in experiment_data_entries:
         print(
             str(experiment_data_entry.label) + table_sep +
             str(format(experiment_data_entry.avg_acc, '.2f')) +
-            ' (' + str(format(experiment_data_entry.avg_forgetting, '.2f')) + ')'
+            # ' (' + str(format(experiment_data_entry.avg_forgetting, '.2f')) + ')'+
+            table_sep + str(format(experiment_data_entry.avg_forgetting, '.2f')) +
+            table_sep + str(format(experiment_data_entry.avg_improvement, '.2f'))
         )
 
 
@@ -431,7 +434,7 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
             if joint_full_batch:
                 eval_results = reformat_single_sequence(eval_results, dataset_index, repeatings_for_curve=taskcount)
             if IT_full_batch:
-                eval_results[dataset_index] = [eval_results[dataset_index][0]]
+                eval_results[dataset_index] = [eval_results[dataset_index][dataset_index]]
 
             # PARSE AND STORE EVAL metrics
             collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskcount, n_iters, multi_head=sub_multi_head)
@@ -461,8 +464,12 @@ def collect_dataframe_icl(exp_data_entries, hyperparams_selection=None, taskcoun
 
                     collect_hyperparams(exp_data_entry, hyperparams_dict, hyperparams_counts, hyperparams_selection)
 
+        print('HYX', exp_data_entry.method.name, exp_data_entry.final_model_seq_test_acc)
+
         exp_data_entry.avg_acc /= exp_data_entry.dataset.task_count
         exp_data_entry.avg_forgetting /= exp_data_entry.dataset.task_count
+        exp_data_entry.avg_improvement /= exp_data_entry.dataset.task_count
+        print('HYX666, avg improvement', exp_data_entry.method.name, exp_data_entry.avg_improvement)
         if IT_full_batch or joint_full_batch:
             print('HYX666e', exp_data_entry.avg_forgetting)
 
@@ -510,6 +517,13 @@ def collect_eval_metrics_icl(exp_data_entry, eval_results, dataset_index, taskco
             exp_data_entry.avg_forgetting += exp_data_entry.seq_forgetting[dataset_index][-1]
         else:
             exp_data_entry.seq_forgetting[dataset_index] = []
+        if len(res) > 1:
+            exp_data_entry.seq_improvement[dataset_index] = [1 if res[i] + 0.0 >= res[i-1] else 0
+                                                            for i in range(1, len(res))]
+            assert len(exp_data_entry.seq_improvement[dataset_index]) + 1 == len(exp_data_entry.seq_acc[dataset_index])
+            exp_data_entry.avg_improvement += sum(exp_data_entry.seq_improvement[dataset_index])/(len(res)-1)
+        else:
+            exp_data_entry.seq_improvement[dataset_index] = []
 
 
 def reformat_single_sequence(eval_results, dataset_index, plot_full_curve=False, repeatings_for_curve=None):
@@ -681,7 +695,7 @@ def plot_multigraphs_icl(experiment_data_entries, save_img_path, max_task_count,
     markers = []
     markersizes = []
     for dataset_index in range(max_task_count):
-        print("PLOTTING TASK NUMBER :", str(dataset_index + 1))
+        # print("PLOTTING TASK NUMBER :", str(dataset_index + 1))
 
         # Fetch labels for this dataset testing plot
         acc_curves = []

@@ -45,7 +45,8 @@ def read_from_config(config, key_value):
 def parse_str_to_floatlist(str_in):
     return list(map(float, str_in.replace(' ', '').split(',')))
 
-
+def parse_str_to_intlist(str_in):
+    return list(map(int, str_in.replace(' ', '').split(',')))
 ########################################
 # DETERMINISTIC
 ########################################

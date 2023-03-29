@@ -251,24 +251,24 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
     plt.ion()
 
     task_idxs = [0, 4, 9, 14, 19] if taskcount > 10 else [i for i in range(0, taskcount)]
-    print("task_idxs={}".format(task_idxs))
+    # print("task_idxs={}".format(task_idxs))
 
     panel_length = len(plots_data[0][0])  # Length of 1 plot panel
     curves_per_plot = len(plots_data[0])  # Curves in 1 plot
     plot_count = len(task_idxs)  # Amount of stacked plots next to eachother
 
-    print("panel_length={}".format(panel_length))
-    print("curves_per_plot={}".format(curves_per_plot))
-    print("plot_count={}".format(plot_count))
+    # print("panel_length={}".format(panel_length))
+    # print("curves_per_plot={}".format(curves_per_plot))
+    # print("plot_count={}".format(plot_count))
 
     if single_dot_idxes is None:
         single_dot_idxes = []
 
     fig, ax = plt.subplots(figsize=(width_inch, height_inch))
-    print('Adding plot data')
+    # print('Adding plot data')
     for i, plot_idx in enumerate(task_idxs):  # horizontal subplots
         curves_data = plots_data[plot_idx]
-        print("Plot idx = {}".format(plot_idx))
+        # print("Plot idx = {}".format(plot_idx))
         for curve_idx, curve_data in enumerate(curves_data):  # curves in 1 subplot
             # Shift to graph + offset of not testing on prev task
             if multi_head == None:
@@ -286,8 +286,8 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
             label = labels[curve_idx] if i == 0 else None
             marker = markers[curve_idx]
             markersize = markersizes[curve_idx]
-            print("Plot X = {}".format(X))
-            print("Xshift={}".format(plot_Xshift))
+            # print("Plot X = {}".format(X))
+            # print("Xshift={}".format(plot_Xshift))
 
             if curve_idx in single_dot_idxes:
                 pos = single_dot_idxes.index(curve_idx)
@@ -322,7 +322,7 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         ax.set_ylim(top=ylim)
 
     # Background
-    print('Adding plot span')
+    # print('Adding plot span')
     for idx, task_idx in enumerate(task_idxs):
         ax.axvspan(idx * panel_length + subplot_offset, (1 + idx) * panel_length - subplot_offset,
                    facecolor=bg_color, alpha=bg_alpha)
@@ -341,12 +341,12 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         XgridlinesPosMajor.append(int(idx * panel_length + panel_length + upper_ticksoffset))
         # offset_idx += 1
     XgridlinesPosMajor = np.asarray(XgridlinesPosMajor)
-    print("XgridlinesPosMinor={}".format(XgridlinesPosMinor))
-    print("XgridlinesPosMajor={}".format(XgridlinesPosMajor))
+    # print("XgridlinesPosMinor={}".format(XgridlinesPosMinor))
+    # print("XgridlinesPosMajor={}".format(XgridlinesPosMajor))
 
     ###############################
     # Labels
-    print("Setting labels")
+    # print("Setting labels")
     Xtick_minorlabels = ['C{}'.format(idx + 1) for idx in task_idxs]
     Xtick_majorlabels = np.repeat('C1', len(XgridlinesPosMajor))
 
@@ -382,7 +382,7 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         ax.set_xticklabels([], minor=False)
 
 
-    print("Setting ticks")
+    # print("Setting ticks")
     # Actual Ticks with Labels
     ax.tick_params(axis='y', which='major', labelsize=y_tick_fontsize)
     ax.tick_params(axis='x', which='minor', labelsize=x_tick_fontsize)
@@ -405,7 +405,7 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         ax.set_ylim(bottom=0)
 
     # Legend
-    print("Setting legend")
+    # print("Setting legend")
     if legend == "top":
         leg = ax.legend(bbox_to_anchor=(0., 1.20, 1., 0.1), loc='upper center', ncol=legend_col,
                         prop={'size': legendsize},
@@ -424,24 +424,24 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
         legobj._legmarker.set_markersize(8.0)
 
     # TOP axis
-    print("Setting axes")
+    # print("Setting axes")
     ax_top = ax.twiny()
-    print("chkpt{}".format(1))
+    # print("chkpt{}".format(1))
     ax_top.set_xlim(-1, taskcount * len(task_idxs) + 1)  # MUST BE SAME AS ax
     top_ticks = XgridlinesPosMajor - plot_count/2.0
-    print("chkpt{}".format(2))
+    # print("chkpt{}".format(2))
 
     ax_top.set_xticks(top_ticks, minor=False)
     ax_top.set_xticklabels(Xtick_minorlabels, minor=False)
-    print("chkpt{}".format(3))
+    # print("chkpt{}".format(3))
 
     ax_top.tick_params(axis=u'both', which=u'both', length=0)
     ax_top.tick_params(axis='x', which='major', labelsize=x_tick_fontsize)
-    print("chkpt{}".format(4))
+    # print("chkpt{}".format(4))
 
     ax_top.set_xlabel('Evaluation on Center', fontsize=x_label_fontsize, labelpad=10)
     plt.setp(ax_top.get_xaxis().get_offset_text(), visible=False)
-    print("chkpt{}".format(5))
+    # print("chkpt{}".format(5))
 
     # Format Plot
     # plt.tight_layout()

@@ -107,7 +107,7 @@ def divide_into_centers(root_path, center_count=10, num_classes=10, noisy_center
             for class_index in range(0, len(classes)):
                 target = classes[class_index]
                 src_path = os.path.join(root_path, subset, target, 'images')
-                if noisy and center_id == noisy_center: #only the third center adds noise
+                if noisy and center_id in noisy_center: #only the third center adds noise
                     target2 = target + '_noisy_25'
                     src_path = os.path.join(root_path, subset, target2, 'images')
                 allfiles = os.listdir(src_path)

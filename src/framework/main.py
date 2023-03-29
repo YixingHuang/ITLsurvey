@@ -22,8 +22,8 @@ parser.add_argument('--method_name', type=str, default=None)
 parser.add_argument('--ds_name', type=str, default=None)
 parser.add_argument('--unbalanced_data', action="store_true",
                     help="unbalanced class distribution over centers")
-parser.add_argument('--noisy_center', type=int, default=None,
-                    help="choice for noisy center, None, 3 or 5")
+parser.add_argument('--noisy_center', type=str, default=None,
+                    help="choice for noisy centers, None, 3 or 5")
 parser.add_argument('--n_tasks', type=int, default=5, help='the total number of tasks/centers')
 parser.add_argument('--n_iters', type=int, default=5, help='the total number of iterations of weight transfer')
 
@@ -129,6 +129,9 @@ def main(method=None, dataset=None):
         args.reload_optimizer = True
     if args.hyperparams_seq is not None:
         args.hyperparams_seq = utils.parse_str_to_floatlist(args.hyperparams_seq)
+
+    if args.noisy_center is not None:
+        args.noisy_center = utils.parse_str_to_intlist(args.noisy_center)
 
     utils.init(seed=args.seed, deterministic=args.deterministic)
     # ADD EXTERNAL PROJECT PATHS

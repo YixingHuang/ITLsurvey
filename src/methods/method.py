@@ -787,29 +787,41 @@ class IsolatedTraining(Method):
         # manager.previous_task_model_path = manager.base_model.path # force no weight transfer
         return Finetune.grid_train(args, manager, lr)
 
-    def train(self, args, manager, hyperparams):
-        # return Finetune.grid_train(args, manager, args.lr)
-
-        dataset_path = manager.current_task_dataset_path
-        print('lr is ' + str(args.lr))
-        print("DATASETS: ", dataset_path)
-
-        if not isinstance(dataset_path, list):  # If single path string
-            dataset_path = [dataset_path]
+    # def train(self, args, manager, hyperparams):
+    #     # return Finetune.grid_train(args, manager, args.lr)
+    #
+    #     dataset_path = manager.current_task_dataset_path
+    #     print('lr is ' + str(args.lr))
+    #     print("DATASETS: ", dataset_path)
+    #
+    #     if not isinstance(dataset_path, list):  # If single path string
+    #         dataset_path = [dataset_path]
 
         dset_dataloader, cumsum_dset_sizes, dset_classes = Finetune.compose_dataset(dataset_path, args.batch_size,
                                                                                 init_freeze=args.init_freeze)
-        return trainFT.fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes,
-                                 model_path=manager.base_model.path,
-                                 exp_dir=manager.heuristic_exp_dir,
-                                 num_epochs=args.num_epochs, lr=args.lr,
-                                 weight_decay=args.weight_decay,
-                                 enable_resume=True,  # Only resume when models saved
-                                 save_models_mode=True,
-                                 replace_last_classifier_layer=not args.init_freeze,
-                                 freq=args.saving_freq,
-                                 optimizer=args.optimizer
-                                 )
+        # return trainFT.fine_tune_SGD(dset_dataloader, cumsum_dset_sizes, dset_classes,
+        #                          model_path=manager.base_model.path,
+        #                          exp_dir=manager.heuristic_exp_dir,
+        #                          num_epochs=args.num_epochs, lr=args.lr,
+        #                          weight_decay=args.weight_decay,
+        #                          enable_resume=True,  # Only resume when models saved
+        #                          save_models_mode=True,
+        #                          replace_last_classifier_layer=not args.init_freeze,
+        #                          freq=args.saving_freq,
+        #                          optimizer=args.optimizer
+        #                          )
+
+    def train(self, args, manager, hyperparams):
+        return trainSI.fine_tune_elastic(dataset_path=manager.current_task_dataset_path,
+                                         num_epochs=args.num_epochs,
+                                         exp_dir=manager.heuristic_exp_dir,
+                                         model_path=manager.base_model.path,
+                                         reg_lambda=0,
+                                         batch_size=args.batch_size, lr=args.lr, init_freeze=args.init_freeze,
+                                         weight_decay=args.weight_decay,
+                                         saving_freq=args.saving_freq,
+                                         optimizer=args.optimizer,
+                                         reload_optimizer=args.reload_optimizer)
     #     dataset_path = manager.current_task_dataset_path
     #     if not isinstance(dataset_path, list):  # If single path string
     #         dataset_path = [dataset_path]

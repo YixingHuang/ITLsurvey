@@ -5,7 +5,7 @@ import copy
 import torch
 from torch.nn import functional as F
 from torch.autograd import Variable
-
+import numpy as np
 import utilities.utils as utils
 
 
@@ -219,7 +219,6 @@ def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, su
         if param_name in head_param_names:
             print("NOT MERGING PARAM {}, as it is a head param name".format(param_name))
             continue
-
         # Calculate Mean
         mean_param = torch.zeros(param_value.data.size()).cuda()
 
@@ -235,8 +234,8 @@ def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, su
 
             if mean_mode:  # MEAN IMM
                 state_dict = models[merge_task_idx].state_dict()
-                param_value = state_dict[param_name]
-                mean_param = mean_param + param_value
+                param_value2 = state_dict[param_name]
+                mean_param += param_value2
             else:  # MODE IMM
                 merge_weighting = precision[merge_task_idx][param_name] / sum_precision[param_name]
                 d_mean_param = merge_weighting.data * models[merge_task_idx].state_dict()[param_name]
@@ -245,7 +244,7 @@ def IMM_merge_models(models, task_list_idx, head_param_names, precision=None, su
         # Task_idx is count of how many iterated
         num_total_task_count = n_centers if total_task_count > n_centers else total_task_count
         if mean_mode:
-            mean_param = mean_param / num_total_task_count  # Cancels out in mode IMM
+            mean_param /= num_total_task_count  # Cancels out in mode IMM
 
         # Update avged param
         param_value.data = mean_param.clone()
