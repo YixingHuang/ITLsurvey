@@ -240,9 +240,9 @@ def plot_line_horizontal_sequence_icl(plots_data, colors, linestyles, labels, ma
     :param labels: Ordered array of labels
     :param legend: best or "upper/lower/center right/left/center"
     """
-    legend_col = 4 # 5
+    legend_col = 2 # 5
     height_inch = 8
-    width_inch = 20
+    width_inch = 16
     x_tick_fontsize = 16
     y_tick_fontsize = 18
     legendsize = 16

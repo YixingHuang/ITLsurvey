@@ -224,9 +224,13 @@ def print_exp_statistics(experiment_data_entries, table_sep='\t'):
             str(format(experiment_data_entry.avg_acc, '.2f')) +
             # ' (' + str(format(experiment_data_entry.avg_forgetting, '.2f')) + ')'+
             table_sep + str(format(experiment_data_entry.avg_forgetting, '.2f')) +
-            table_sep + str(format(experiment_data_entry.avg_improvement, '.2f'))
+            table_sep + str(format(experiment_data_entry.avg_improvement, '.4f'))
         )
-
+    # print(table_sep.join(["'EXPERIMENT'", "'AVG ACC(FINAL MODEL)'", "'AVG FORGETTING(FINAL MODEL)'", "'AVG Monotonicity (ALL MODELS)'"]))
+    # for experiment_data_entry in experiment_data_entries:
+    #     print(
+    #         str(format(experiment_data_entry.avg_improvement, '.2f'))
+    #     )
 
 def collect_gridsearch_exp_entries(test_results_root_path, tr_results_root_path,
                                    dataset, method, gridsearch_name, model,
@@ -594,7 +598,8 @@ def get_plot_label(experiment_data_entry):
         return ": " + '%.2f (n/a)' % (experiment_data_entry.avg_acc)  # plot final model avg acc
     else:
         return ": " + '%.2f (%.2f)' % (
-            experiment_data_entry.avg_acc, experiment_data_entry.avg_forgetting
+            # experiment_data_entry.avg_acc, experiment_data_entry.avg_forgetting
+            experiment_data_entry.avg_acc, experiment_data_entry.avg_improvement * 100
         )  # plot final model avg acc
 
 

@@ -22,3 +22,12 @@ src/runRetinaScriptsWin/
 src/runTinyScriptsWin/runCMDs_10Classes.py
 src/runTinyScriptsWin/runCMDs_10Classes.py
 >>>>>>> Stashed changes
+src/runTinyScriptsWinPaper/AdamSWT_N5.py
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_()_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_()_small_VGG9_cl_128_128_TASKALL.png
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_()_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_()_small_VGG9_cl_128_128_TASKALL_v2.png
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_()_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_()_small_VGG9_cl_128_128_TASKALL_v3.png
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_(EBLL)_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_(EBLL)_small_VGG9_cl_128_128_TASKALL.png
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_(LWF)_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_(LWF)_small_VGG9_cl_128_128_TASKALL.png
+src/utilities/imgs/Adam_10Classes/DEMO_Tiny Imagenet_(MAS)_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_(MAS)_small_VGG9_cl_128_128_TASKALL.png
+src/utilities/imgs/Adam_10Classes_batch5/DEMO_Tiny Imagenet_(joint_FT_SI_EWC_LWF_EBLL_MAS_IMM_IMM)_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_(joint_FT_SI_EWC_LWF_EBLL_MAS_IMM_IMM)_small_VGG9_cl_128_128_TASKALL.png
+src/utilities/imgs/Adam_200Classes/DEMO_Tiny Imagenet_(FT_SI_IMM_MAS)_small_VGG9_cl_128_128/png/DEMO_TinyImagenet_(FT_SI_IMM_MAS)_small_VGG9_cl_128_128_TASKALL.png
