@@ -62,8 +62,96 @@ def preprocess_val(root_path):
         utils.attempt_move(os.path.join(val_path, 'images', imagename), this_class_dir)
 
 
+
+# def divide_into_centers(root_path, center_count=10, num_classes=2, min_num=50, max_num=200):
+#     """
+#     Divides total subset data into multi-centers (into dirs "task_x").
+#     center_count: number of centers
+#     num_class: either 2 or 5 for retinal fundus images
+#     min_num: the minimum number of images at each center
+#     max_num: the maximum number of images used at each center (some centers have thounsands of images)
+#     :return:
+#     """
+#     print("Be patient: dividing into research centers...")
 #
-def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, max_num=200):
+#     if num_classes == 5:
+#         classes = ('absent', 'mild', 'moderate', 'severe', 'proliferative retinopathy')
+#     elif num_classes == 2:
+#         classes = ('absent', 'DR')
+#     else:
+#         raise NotImplementedError('num_class should be either 2 or 5!')
+#     class_to_idx = {classes[i]: i for i in range(len(classes))}
+#
+#     patient2class = getPatient2Class(os.path.join(root_path, 'trainLabels.csv'))
+#     subsets = ['train', 'val']
+#
+#     img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
+#     folders = [f for f in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, f))]
+#     total_folders = len(folders)
+#     print('total number of folders/centers is ', total_folders)
+#     assert center_count <= total_folders, "center_count should be smaller than {}".format(total_folders)
+#
+#     folder_id = 0
+#
+#     for center_id in range(1, center_count + 1):
+#
+#         if len(img_paths[center_id]['classes']) == 0:
+#             img_paths[center_id]['classes'].extend(classes)
+#         img_paths[center_id]['class_to_idx'] = class_to_idx
+#
+#         num_files = 0
+#         allfiles = []
+#         while num_files < 2 * min_num:
+#             center_path = os.path.join(root_path, folders[folder_id])
+#             num_per_class, total_diseased = getFileNumbers(center_path)
+#             if total_diseased < min_num:
+#                 folder_id = folder_id + 1
+#                 continue
+#
+#             healthy_files = []
+#             diseased_files = []
+#             for category in range(0, 5):
+#                 subfolder = os.path.join(center_path, str(category))
+#                 if not os.path.exists(subfolder):
+#                     continue
+#                 allfiles_sub = os.listdir(subfolder)
+#                 allfiles_sub = [os.path.join(subfolder, f) for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
+#                 if category == 0:
+#                     healthy_files.extend(allfiles_sub)
+#                 else:
+#                     diseased_files.extend(allfiles_sub)
+#             num_class_0 = num_per_class[0] if num_per_class[0] < total_diseased else total_diseased
+#             num_class_0 = max_num if num_class_0 > max_num else num_class_0
+#             total_diseased = max_num if total_diseased > max_num else total_diseased
+#             random.seed(0)
+#             healthy_files = random.sample(healthy_files, int(num_class_0/2.0))
+#             diseased_files = random.sample(diseased_files, total_diseased)
+#             allfiles = healthy_files + diseased_files
+#             num_files = len(allfiles)
+#             allfiles = random.sample(allfiles, num_files)
+#             folder_id = folder_id + 1
+#         print('Folder ' + folders[folder_id] + ' is selected!')
+#         num_train = int(num_files * 0.8)
+#         for subset in subsets:
+#             if subset == 'train':
+#                 initial_image_id = 0
+#                 num_imgs = num_train
+#             else:
+#                 initial_image_id = num_train
+#                 num_imgs = num_files - num_train
+#             imgs = []
+#             for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
+#                 patientName = os.path.basename(f)[0:-5]
+#                 original_class = patient2class.get(patientName)
+#                 isinclude, new_class = isIncluded(original_class=original_class, num_class=num_classes)
+#                 if isinclude:
+#                    imgs.append((f, new_class))
+#
+#             img_paths[center_id][subset].extend(imgs)
+#
+#     return img_paths
+
+def divide_into_centers(root_path, center_count=10, num_classes=2, min_num=50, max_num=200):
     """
     Divides total subset data into multi-centers (into dirs "task_x").
     center_count: number of centers
@@ -74,15 +162,9 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
     """
     print("Be patient: dividing into research centers...")
 
-    if num_classes == 5:
-        classes = ('absent', 'mild', 'moderate', 'severe', 'proliferative retinopathy')
-    elif num_classes == 2:
-        classes = ('absent', 'DR')
-    else:
-        raise NotImplementedError('num_class should be either 2 or 5!')
+    classes = ('absent', 'DR')
     class_to_idx = {classes[i]: i for i in range(len(classes))}
 
-    patient2class = getPatient2Class(os.path.join(root_path, 'trainLabels.csv'))
     subsets = ['train', 'val']
 
     img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
@@ -91,63 +173,37 @@ def divide_into_centers(root_path, center_count=10, num_classes=5, min_num=50, m
     print('total number of folders/centers is ', total_folders)
     assert center_count <= total_folders, "center_count should be smaller than {}".format(total_folders)
 
-    folder_id = 0
-
     for center_id in range(1, center_count + 1):
 
         if len(img_paths[center_id]['classes']) == 0:
             img_paths[center_id]['classes'].extend(classes)
         img_paths[center_id]['class_to_idx'] = class_to_idx
 
-        num_files = 0
-        allfiles = []
-        while num_files < 2 * min_num:
-            center_path = os.path.join(root_path, folders[folder_id])
-            num_per_class, total_diseased = getFileNumbers(center_path)
-            if total_diseased < min_num:
-                folder_id = folder_id + 1
+        folder_id = center_id - 1
+        center_path = os.path.join(root_path, folders[folder_id])
+
+        for category in range(0, 2):
+            subfolder = os.path.join(center_path, str(category))
+            if not os.path.exists(subfolder):
                 continue
+            allfiles_sub = os.listdir(subfolder)
+            allfiles = [os.path.join(subfolder, f) for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
 
-            healthy_files = []
-            diseased_files = []
-            for category in range(0, 5):
-                subfolder = os.path.join(center_path, str(category))
-                if not os.path.exists(subfolder):
-                    continue
-                allfiles_sub = os.listdir(subfolder)
-                allfiles_sub = [os.path.join(subfolder, f) for f in allfiles_sub if os.path.isfile(os.path.join(subfolder, f))]
-                if category == 0:
-                    healthy_files.extend(allfiles_sub)
-                else:
-                    diseased_files.extend(allfiles_sub)
-            num_class_0 = num_per_class[0] if num_per_class[0] < total_diseased else total_diseased
-            num_class_0 = max_num if num_class_0 > max_num else num_class_0
-            total_diseased = max_num if total_diseased > max_num else total_diseased
-            random.seed(0)
-            healthy_files = random.sample(healthy_files, int(num_class_0/2.0))
-            diseased_files = random.sample(diseased_files, total_diseased)
-            allfiles = healthy_files + diseased_files
             num_files = len(allfiles)
-            allfiles = random.sample(allfiles, num_files)
-            folder_id = folder_id + 1
-        print('Folder ' + folders[folder_id] + ' is selected!')
-        num_train = int(num_files * 0.8)
-        for subset in subsets:
-            if subset == 'train':
-                initial_image_id = 0
-                num_imgs = num_train
-            else:
-                initial_image_id = num_train
-                num_imgs = num_files - num_train
-            imgs = []
-            for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
-                patientName = os.path.basename(f)[0:-5]
-                original_class = patient2class.get(patientName)
-                isinclude, new_class = isIncluded(original_class=original_class, num_class=num_classes)
-                if isinclude:
-                   imgs.append((f, new_class))
+            num_train = int(num_files * 0.8)
 
-            img_paths[center_id][subset].extend(imgs)
+            for subset in subsets:
+                if subset == 'train':
+                    initial_image_id = 0
+                    num_imgs = num_train
+                else:
+                    initial_image_id = num_train
+                    num_imgs = num_files - num_train
+                imgs = []
+                for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
+                    imgs.append((f, category))
+
+                img_paths[center_id][subset].extend(imgs)
 
     return img_paths
 
