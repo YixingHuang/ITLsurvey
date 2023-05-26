@@ -199,6 +199,8 @@ def divide_into_centers(root_path, center_count=10, num_classes=2, min_num=50, m
                 else:
                     initial_image_id = num_train
                     num_imgs = num_files - num_train
+                    if num_imgs % 2 == 1:
+                        num_imgs = num_imgs - 1
                 imgs = []
                 for f in allfiles[initial_image_id: initial_image_id + num_imgs]:
                     imgs.append((f, category))
@@ -244,128 +246,6 @@ def getPatient2Class(csv_path):
         disease_type = int(row[1])
         patient2class.update({patient_name:disease_type})
     return patient2class
-
-## Unbalanced data with two dominant classes in each center
-def divide_into_centers_unbalanced_classes(root_path, center_count=5, num_classes=10):
-    """
-    Divides total subset data into multi-centers (into dirs "task_x").
-    :return:
-    """
-    print("Be patient: dividing into research centers...")
-    num_images = 500
-    # nb_images_per_center = 500 // center_count
-    nb_images_per_center_val = 50 // center_count
-    # assert 500 % nb_images_per_center == 0, "total 500 images per class must be divisible by nb images per center"
-
-    file_path = os.path.join(root_path, "classes.txt")
-    lines = [line.rstrip('\n') for line in open(file_path)]
-    assert len(lines) == 200, "Should have 200 classes, but {} lines in classes.txt".format(len(lines))
-    subsets = ['train', 'val']
-    img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
-
-    nb_images_per_center = [int(0.4 * num_images)]
-    ratio_others = 0.6/(center_count - 1)
-    for i in range(0, center_count - 1):
-        nb_images_per_center.append(int(ratio_others * num_images))
-    assert len(nb_images_per_center) == center_count, "the total number of ratios must be equal to the number of centers"
-
-    classes = lines[0:num_classes]
-    classes.sort()
-    class_to_idx = {classes[i]: i for i in range(len(classes))}
-    for subset in subsets:
-        if subset == 'val':
-            center_id = 1
-            num_images_val = 50
-
-            # Make subset dataset dir for each center
-            for initial_image_id in (range(0, num_images_val, nb_images_per_center_val)):
-                if len(img_paths[center_id]['classes']) == 0:
-                    img_paths[center_id]['classes'].extend(classes)
-                img_paths[center_id]['class_to_idx'] = class_to_idx
-                for class_index in range(0, len(classes)):
-                    target = lines[class_index]
-                    src_path = os.path.join(root_path, subset, target, 'images')
-                    allfiles = os.listdir(src_path)
-                    imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in
-                            allfiles[initial_image_id: initial_image_id + nb_images_per_center_val]
-                            if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
-                    img_paths[center_id][subset].extend(imgs)
-                center_id = center_id + 1
-        else:
-            # Make subset dataset dir for each center
-            num_classes_major_per_center = num_classes / center_count
-            for center_id in range(1, center_count + 1):
-                if len(img_paths[center_id]['classes']) == 0:
-                    img_paths[center_id]['classes'].extend(classes)
-                img_paths[center_id]['class_to_idx'] = class_to_idx
-            for class_index in range(0, len(classes)):
-                if class_index % int(num_classes_major_per_center) == 0 and class_index > 0:
-                    nb_images_per_center.append(nb_images_per_center.pop(0))
-
-                initial_image_id = 0
-                for center_id in range(1, center_count + 1):
-                    end_image_id = initial_image_id + nb_images_per_center[center_id - 1]
-                    target = lines[class_index]
-                    src_path = os.path.join(root_path, subset, target, 'images')
-                    allfiles = os.listdir(src_path)
-                    imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in
-                            allfiles[initial_image_id: end_image_id]
-                            if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
-                    img_paths[center_id][subset].extend(imgs)
-                    initial_image_id = end_image_id
-    return img_paths
-
-
-## Unbalanced data with more datasets in one center
-def divide_into_centers_unbalanced(root_path, center_count=5, num_classes=10):
-    """
-    Divides total subset data into multi-centers (into dirs "task_x").
-    :return:
-    """
-    """
-        Divides total subset data into multi-centers (into dirs "task_x").
-        :return:
-        """
-    print("Be patient: dividing into research centers...")
-    num_images = 500
-    # nb_images_per_center = 500// center_count
-    # init_image_ids_per_center = [0, 180, 260, 340, 420, 500] #first center more data
-    init_image_ids_per_center = [0, 80, 160, 340, 420, 500] # third center more data
-    # nb_images_per_center_val = 50 // center_count
-
-    file_path = os.path.join(root_path, "classes.txt")
-    lines = [line.rstrip('\n') for line in open(file_path)]
-    assert len(lines) == 200, "Should have 200 classes, but {} lines in classes.txt".format(len(lines))
-    subsets = ['train', 'val']
-    img_paths = {t: {s: [] for s in subsets + ['classes', 'class_to_idx']} for t in range(1, center_count + 1)}
-
-    for subset in subsets:
-        if subset == 'val':
-            init_image_ids_per_center = [0, 10, 20, 30, 40, 50]
-        # for initial_class in (range(0, len(lines), nb_images_per_center)):
-        # classes = lines[initial_class:initial_class + nb_images_per_center]
-        classes = lines[0:num_classes]
-        classes.sort()
-        class_to_idx = {classes[i]: i for i in range(len(classes))}
-        print("HYX", classes, class_to_idx)
-        # Make subset dataset dir for each center
-        # for initial_image_id in (range(0, num_images, nb_images_per_center)):
-        for center_id in range(1, center_count+1):
-            initial_image_id = init_image_ids_per_center[center_id -1]
-            end_image_id = init_image_ids_per_center[center_id]
-            if len(img_paths[center_id]['classes']) == 0:
-                img_paths[center_id]['classes'].extend(classes)
-            img_paths[center_id]['class_to_idx'] = class_to_idx
-            for class_index in range(0, len(classes)):
-                target = lines[class_index]
-                src_path = os.path.join(root_path, subset, target, 'images')
-                allfiles = os.listdir(src_path)
-                imgs = [(os.path.join(src_path, f), class_to_idx[target]) for f in
-                        allfiles[initial_image_id: end_image_id]
-                        if os.path.isfile(os.path.join(src_path, f))]  # (label_idx, path)
-                img_paths[center_id][subset].extend(imgs)
-    return img_paths
-
 
 def create_train_test_val_imagefolders(img_paths, root, normalize, include_rnd_transform, no_crop):
     # TRAIN

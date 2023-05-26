@@ -145,7 +145,7 @@ def test_task_joint_model(model_path, dataset_path, task_idx, task_lengths, batc
         _, predicted = torch.max(this_tasks_outputs.data, 1)
         if debug:
             pdb.set_trace()
-        c = (predicted == labels).squeeze()
+        c = (predicted == labels)#.squeeze() #For Retina, comment out squeeze() because of a single image in a batch
 
         for i in range(len(predicted)):
             label = labels[i]

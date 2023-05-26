@@ -1221,10 +1221,27 @@ class Finetune(Method):
 
         cumsum_dset_sizes = {mode: sum(dset_sizes[mode]) for mode in dset_sizes}
         classes_len = {mode: [len(ds) for ds in dset_classes[mode]] for mode in dset_classes}
-        dset_dataloader = {x: torch.utils.data.DataLoader(
-            ConcatDatasetDynamicLabels(dset_imgfolders[x], classes_len[x], init_freeze=init_freeze),
-            batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
-            for x in ['train', 'val']}  # Concat into 1 dataset
+        dsets = {}
+        for x in ['train', 'val']:
+            dsets[x] = ConcatDatasetDynamicLabels(dset_imgfolders[x], classes_len[x], init_freeze=init_freeze)
+        # dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=batch_size,
+        #                                                shuffle=True, num_workers=8, pin_memory=True, drop_last=True)
+        #                 for x in ['train', 'val']}
+        sampler = {}
+        for x in ['train', 'val']:
+            class_sample_count = [len([idx for idx in range(len(dsets[x])) if dsets[x][idx][1] == t]) for t in range(2)]
+            weights = 1 / torch.Tensor(class_sample_count)
+            samples_weight = torch.tensor([weights[t] for _, t in dsets[x]])
+
+            sampler[x] = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        dset_dataloader = {x: torch.utils.data.DataLoader(dsets[x], sampler=sampler[x], batch_size=batch_size,
+                                                       shuffle=False, num_workers=8, pin_memory=False)
+                        for x in ['train', 'val']}
+        # dset_dataloader = {x: torch.utils.data.DataLoader(
+        #     ConcatDatasetDynamicLabels(dset_imgfolders[x], classes_len[x], init_freeze=init_freeze),
+        #     batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
+        #     for x in ['train', 'val']}  # Concat into 1 dataset
         print("dset_classes: {}, dset_sizes: {}".format(dset_classes, cumsum_dset_sizes))
         return dset_dataloader, cumsum_dset_sizes, dset_classes
 

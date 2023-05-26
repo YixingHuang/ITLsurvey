@@ -10,7 +10,7 @@ test_results_root_path = utils.read_from_config(config, 'test_results_root_path'
 tr_results_root_path = utils.read_from_config(config, 'tr_results_root_path')
 models_root_path = utils.read_from_config(config, 'models_root_path')
 
-dataset = TinyImgnetDataset()
+dataset = RetinalFundusDataset()
 model = SmallVGG9(models_root_path, dataset.input_size)
 # model = BaseVGG9(models_root_path, dataset.input_size)
 # model = DeepVGG22(models_root_path, dataset.input_size)
@@ -31,17 +31,11 @@ exp_name_contains = None
 # INIT
 method_names = []
 method_data_entries = []
-gridsearch_name = "base_training_adam"
+gridsearch_name = "retina_try"
 #############################################
 # methods = [FineTuning(), SI(), EWC(), MAS()]
-methods = [Joint(), FineTuning(), SI(), MAS(), LWF(), EBLL(), IMM('mean'), IMM('mode')]
-# methods = [FineTuning(), SI(), EWC(), MAS(), EBLL()]
-# methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), EBLL(), IMM('mean'), IMM('mode')]
+methods = [Joint(), FineTuning(), EWC(), SI(), LWF(), EBLL(), IMM('mean'), IMM('mode')]
 
-# methods = [FineTuning(), SI(), EWC(), LWF(), MAS(), IMM('mean'), IMM('mode')]
-# methods = [SI(), EWC(), LWF(), MAS()]
-# methods = [IMM('mean'), IMM('mode')]
-# methods = [FineTuning(), SI(), IMM('mean'), IMM('mode')]
 for method in methods:
     # method = SI()
     method_names.append(method.name)
@@ -64,4 +58,4 @@ if save_img:
 
 analyze_experiments_icl(method_data_entries, hyperparams_selection=hyperparams_selection, plot_seq_acc=plot_seq_acc,
                     plot_seq_forgetting=plot_seq_forgetting, save_img_parent_dir=out_name, img_extention=img_extention,
-                        taskcount=5, n_iters=1, gridsearch_name=gridsearch_name, multi_head=True)
+                        taskcount=5, n_iters=1, gridsearch_name=gridsearch_name, multi_head=None)
