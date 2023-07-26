@@ -1,4 +1,4 @@
-# CLsurveyMCofficial
+# Incremental Transfer Learning (ITL) Survey
 
 This is the code repository for our paper:
 
