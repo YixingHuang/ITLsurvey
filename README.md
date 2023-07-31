@@ -12,7 +12,7 @@ Incremental Transfer Learning shares trained models in a peer-to-peer federated 
 
 The framework of incremental transfer learning is illustrated in the following figure:
 
-[logo]: [https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png](https://github.com/YixingHuang/ITLsurvey/blob/main/image857-8.png) "Incremental Transfer Learning"
+[logo]: https://github.com/YixingHuang/ITLsurvey/blob/main/image857-8.png "Incremental Transfer Learning"
 
 ## Acknolowdgement
 This repository is developed based on the [task-incremental learning respository](https://github.com/Mattdl/CLsurvey) of the [TPAMI survey paper](https://ieeexplore.ieee.org/abstract/document/9349197).
