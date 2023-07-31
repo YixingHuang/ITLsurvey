@@ -22,7 +22,9 @@ The following classic regularization-based continual learning methods are invest
 - Learning Without Forgetting (LWF)
 - Encoder-Based Lifelong Learning (EBLL)
 - Incremental Moment Matching (IMM): mean-IMM and mode-IMM
+  
 They are compared with baselines without conitnual learning methods:
+
 - Fine-Tuning (FT)
 - Independant Training (IT)
 - Joint training (Joint)
