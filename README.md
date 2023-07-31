@@ -10,4 +10,4 @@ This is the code repository for our paper:
 
 
 ## Acknolowdgement
-This repository is developed based on the [task-incremental learning respository](https://github.com/Mattdl/CLsurvey) 
+This repository is developed based on the [task-incremental learning respository](https://github.com/Mattdl/CLsurvey) of the [TPAMI survey paper](https://ieeexplore.ieee.org/abstract/document/9349197).
