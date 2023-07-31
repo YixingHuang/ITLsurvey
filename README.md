@@ -42,3 +42,14 @@ The state-of-the-art continual learning methods typically use the SGD optimizer.
 
 ## Acknolowdgement
 This repository is developed based on the [task-incremental learning respository](https://github.com/Mattdl/CLsurvey) of the [TPAMI survey paper](https://ieeexplore.ieee.org/abstract/document/9349197).
+
+The following major modifications have been made to adapt the existing continual learning framework for our incremental transfer learning:
+- Single-head setting instead of multi-head setting, which drastically reduces the forgetting problem and is more natural for single-task multicenter collaboration scenarios.
+- Add the Adam optimizer for higher performance and easier choice of learning rates, compared with the SGD optimizer. All the algorithms need to be modified correspondingly.
+- Add cyclic weight transfer to the framework, as cyclic weight transfer can achieve better performance than single weight transfer and existing continual learning frameworks all use single weight transfer only.
+- Reload optimizer: the parameters of the Adam optimizer (including the learning rate) will be reloaded to have a smooth transition from center to center.
+- Overfitting monitor: The monitoring of overfitting is very important to avoid drastic performance drop after training in one center.
+- Data preprocessing pipeline to get independent and identically distributed (IID) data and non-IID data.
+- Add the evaluation metric of monotonicity, as we want the model performance can increase stably and monotonically.
+
+  
