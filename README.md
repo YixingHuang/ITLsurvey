@@ -14,6 +14,24 @@ The framework of incremental transfer learning is illustrated in the following f
 
 ![Incremental Transfer Learning](https://github.com/YixingHuang/ITLsurvey/blob/main/image857-8.png "Incremental Transfer Learning")
 
+## Methods
+The following classic regularization-based continual learning methods are investigated:
+- Synaptic Intelligence (SI)
+- Elastic Weight Consollidation (EWC)
+- Memory Aware Synapses (MAS)
+- Learning Without Forgetting (LWF)
+- Encoder-Based Lifelong Learning (EBLL)
+- Incremental Moment Matching (IMM): mean-IMM and mode-IMM
+They are compared with baselines without conitnual learning methods:
+- Fine-Tuning (FT)
+- Independant Training (IT)
+- Joint training (Joint)
+
+All the above methods are investigated using single weight transfer (SWT) and cyclic weight transfer (CWT).
+
+## Optimizers
+The state-of-the-art continual learning methods typically use the SGD optimizer. In our work, we propose to use adaptive optimizers such as the Adam for better performance and ease of learning rate choice.
+
 ## Datasets
 ### Three datasets are used for this survey.
 - The Tiny ImageNet dataset: this is available from the [CS231n course source](http://cs231n.stanford.edu/tiny-imagenet-200.zip)
